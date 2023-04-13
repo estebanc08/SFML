@@ -2,8 +2,10 @@
 
 
 int main() {
-    int height = 25 * 25, width = 25 * 30;
-    sf::RenderWindow window(sf::VideoMode((float)width, (float)height+250), "Sorts");
+    // int height = 25 * 25, width = 25 * 30;
+    sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Sorts");
+    int width = window.getSize().x;
+    int height = window.getSize().y - 200;
     sorts game(width, height);
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     string numString = to_string(game.size);
