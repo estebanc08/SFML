@@ -10,7 +10,7 @@
 #include <cmath>
 #include "allSorts.hpp"
 using namespace std;
-#define TILE_WIDTH 4
+static float TILE_WIDTH  = 4;
 
 class sorts{
      struct tile{
@@ -33,12 +33,18 @@ class sorts{
     int toSwap;
     int randomNumber();
     int height, width;
-    string sortType;
+    string buttonClicked;
+    bool changeNums;
+
     public:
+    int size;
     void changeSort(string type);
     sorts();
     sorts(int width, int height);
     void update(sf::RenderWindow& window);
     void clickType(sf::Vector2f mousePos);
     void draw(sf::RenderWindow& window);
+    void updateSize(string size);
+    bool isChangingSize();
+    unordered_map<string, pair<sf::RectangleShape, sf::Text>> getButtons(){return buttons;};
 };

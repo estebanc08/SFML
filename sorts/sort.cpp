@@ -22,7 +22,7 @@ sorts::sorts(){
 void sorts::shuffle(){
     original.clear();
     nums.clear();
-    for(int i = 0; i < width / TILE_WIDTH; i++){
+    for(int i = 0; i < (int)(width / TILE_WIDTH); i++){
         int num = randomNumber();
         original.push_back(num);
         nums.push_back(num);
@@ -37,10 +37,12 @@ sorts::sorts(int width, int height){
     this->i = this->j = 0;
     loadButtons();
     shuffle();
+    // TILE_WIDTH = 50;
     toSwap = -1;
+    size = nums.size();
 }
 void sorts::changeSort(string type){
-    sortType = type;
+    buttonClicked = type;
     nums = original;
     done = false;
     this->i = this->j = 0;
@@ -57,31 +59,60 @@ int sorts::randomNumber(){
 void sorts::update(sf::RenderWindow& window){
     if(done)
         return;
-    if(sortType == "bubble"){
+    if(buttonClicked == "bubble"){
         if(bubbleSort(nums, i, j, toSwap))
             done = true;
     }
-    else if(sortType == "insertion"){
+    else if(buttonClicked == "insertion"){
         if(insertionSort(nums, i, j, toSwap))
             done = true;
     }
-    else if(sortType == "selection"){
+    else if(buttonClicked == "selection"){
         if(selectionSort(nums, i, toSwap))
             done = true;
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        int wait = TILE_WIDTH;
+        if(TILE_WIDTH < 30)
+            wait = 30;
+        std::this_thread::sleep_for(std::chrono::milliseconds(wait));
     }
-    else if(sortType == "shuffle"){
+    else if(buttonClicked == "shuffle"){
         shuffle();
-        sortType = "";
+        buttonClicked = "";
         done = false;
         toSwap = -1;
     }
-}
 
+}
+bool sorts::isChangingSize(){
+    return changeNums;
+}
+void sorts::updateSize(string size){
+    done = false;
+    if(size == ""){
+        this->size = 0;
+        TILE_WIDTH = width+1;
+    }
+    else if(size.size() >= 5)
+        return;
+    else{
+        this->size = stoi(size);
+        TILE_WIDTH = (float)width / this->size;
+    }
+    buttons["numbers"].second.setString(size);
+    shuffle();
+    toSwap = -1;
+    this->i = this->j = 0;
+    buttonClicked = "";
+    numTotal = 0;
+}
 void sorts::clickType(sf::Vector2f mousePos){
+    changeNums = false;
     for(auto button : buttons){
         if(button.second.first.getGlobalBounds().contains(mousePos)){
-            changeSort(button.first);
+            if(button.first == "numbers")
+                changeNums = true;
+            else
+                changeSort(button.first);
             return;
         }
     }
@@ -105,6 +136,8 @@ void sorts::draw(sf::RenderWindow& window){
             numTotal = 0;
         //make the bar move faster for larger inputs to make it equal for large and small sorts. Should probably use timer somehow
         int timeWait = TILE_WIDTH / 0.6;
+        if(size < 50)
+            timeWait = 50;
         std::this_thread::sleep_for(std::chrono::milliseconds(timeWait));
     }
     else{
@@ -117,24 +150,33 @@ void sorts::draw(sf::RenderWindow& window){
             rect.setPosition(i*TILE_WIDTH, height-nums[i]);
             window.draw(rect);
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        if(buttonClicked != "")
+            std::this_thread::sleep_for(std::chrono::milliseconds((int)TILE_WIDTH));
     }
-    float lineWidth = TILE_WIDTH >= 5 ? 1 : (float)TILE_WIDTH / 5;
-    sf::RectangleShape line(sf::Vector2f(lineWidth, height));
-    line.setFillColor(babyBlue);
-    for(int i = 0; i < nums.size(); i++){
-        line.setPosition(TILE_WIDTH*i, 0);
-        window.draw(line);
+    //too hard to see the lines after this point
+    if(TILE_WIDTH > 2){
+        float lineWidth = (float)TILE_WIDTH / 50;
+        if(lineWidth < 1)
+            lineWidth = 1.f;
+        sf::RectangleShape line(sf::Vector2f(lineWidth, height));
+        line.setFillColor(babyBlue);
+        for(int i = 1; i < nums.size(); i++){
+            line.setPosition(TILE_WIDTH*i, 0);
+            window.draw(line);
+        }
     }
 
     for(auto button : buttons){
-        if(button.first == sortType)
+        if(button.first == buttonClicked)
             button.second.first.setFillColor(sf::Color::Green);
-        else
-            button.second.first.setFillColor(babyBlue);
         window.draw(button.second.first);
         window.draw(button.second.second);
     }
+
+    sf::Text numElements("Number of Elements: ", font, 20);
+    numElements.setPosition(30, window.getSize().y - 75);
+    numElements.setFillColor(sf::Color::Black);
+    window.draw(numElements);
 }
 
 void sorts::loadButtons(){
@@ -170,7 +212,7 @@ void sorts::loadButtons(){
     insertionText.setFillColor(sf::Color::Black);
     buttons["insertion"] = {insertion, insertionText};
 
-     sf::RectangleShape shuffle;
+    sf::RectangleShape shuffle;
     shuffle.setFillColor(babyBlue);
     shuffle.setSize(sf::Vector2f(150, 75));
     shuffle.setPosition(width - 180, height+40);
@@ -183,4 +225,15 @@ void sorts::loadButtons(){
     back.setPosition(0,0);
     back.setFillColor(babyBlue);
     back.setSize(sf::Vector2f(width, height));
+
+    int num = width / TILE_WIDTH;
+    string numTemp = to_string(num);
+    sf::Text numText(numTemp, font, 20);
+    numText.setPosition(225, height+175);
+    numText.setFillColor(sf::Color::Black);
+    sf::RectangleShape numTiles;
+    numTiles.setSize(sf::Vector2f(numText.getGlobalBounds().width+20, numText.getGlobalBounds().height+15));
+    numTiles.setPosition(225, height+175);
+    numTiles.setFillColor(sf::Color::White);
+    buttons["numbers"] = {numTiles, numText};
 }   
