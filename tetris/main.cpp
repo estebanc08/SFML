@@ -1,16 +1,14 @@
 #include "tetris.hpp"
-#define MOVING_SPEED 15
-#define FALLING_SPEED 20
 
 int main(){
     bool released = true;
-    unsigned int timer = 0, gamespeed = FALLING_SPEED;
     int width = 10, height = 20;
-    sf::RenderWindow window(sf::VideoMode(width*TILE_WIDTH,height*TILE_WIDTH), "Tetris");
+    sf::RenderWindow window(sf::VideoMode(width*TILE_WIDTH+TILE_WIDTH*8+PADDING,height*TILE_WIDTH), "Tetris");
     window.setFramerateLimit(60);
     tetris game(width,height);
     sf::Clock keyPressCooldown;
     const float cooldownTime = 0.05f;
+    float timer = 0, gamespeed = game.getFallingSpeed();
     while(window.isOpen()){
         sf::Event event;
         while(window.pollEvent(event)){
@@ -28,7 +26,7 @@ int main(){
                             else
                                 game.direction = game.Direction::none;
                         }
-                        else if (event.key.code == sf::Keyboard::Down)
+                        else if (event.key.code == sf::Keyboard::Down && !game.deleting)
                         {
                             game.direction = game.Direction::down;
                             gamespeed = MOVING_SPEED;
@@ -49,15 +47,20 @@ int main(){
                     if(event.key.code == sf::Keyboard::R){
                         game.direction = game.Direction::none;
                         game.restart();
+                        timer = gamespeed + 1;
+                    }
+                    else if(event.key.code == sf::Keyboard::P){
+                        game.direction = game.Direction::none;
+                        timer = gamespeed + 1;
                     }
                 }
                 else if (event.type == sf::Event::KeyReleased) {
                     released = true;
-                    gamespeed = FALLING_SPEED;
+                    gamespeed = game.getFallingSpeed();
                 }
             
         }
-        window.clear(sf::Color::White);
+        window.clear(sf::Color::Black);
         if (timer > gamespeed){
             game.update();
             timer = 0;
