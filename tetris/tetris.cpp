@@ -35,7 +35,8 @@ tetris::tetris(int width, int height){
     direction = Direction::none;
     sidebar.setSize(sf::Vector2f(6*TILE_WIDTH, 12*TILE_WIDTH));
     sidebar.setPosition(PADDING + width*TILE_WIDTH+TILE_WIDTH, TILE_WIDTH*2);
-    sidebar.setFillColor(sf::Color(200, 230, 255));
+    // sidebar.setFillColor(sf::Color(200, 230, 255));
+    sidebar.setFillColor(sf::Color::Black);
 }
 
 void tetris::draw(sf::RenderWindow& window){
@@ -52,7 +53,7 @@ void tetris::draw(sf::RenderWindow& window){
 
     //grid lines
     sf::RectangleShape line(sf::Vector2f(width*TILE_WIDTH, 1));
-    line.setFillColor(sf::Color(100,100,100));
+    line.setFillColor(sf::Color(160,160,160, 100));
     for(int i = 1; i < board.size(); i++){
         line.setPosition(PADDING, i*TILE_WIDTH);
         window.draw(line);
@@ -77,6 +78,7 @@ void tetris::draw(sf::RenderWindow& window){
     }
 
     line.setSize(sf::Vector2f(sidebar.getGlobalBounds().width, 1));
+    line.setFillColor(sf::Color::Black);
     for(int i = 0; i <= sidebar.getGlobalBounds().height / TILE_WIDTH; i++){
         line.setPosition(sidebar.getPosition().x, sidebar.getPosition().y + i * TILE_WIDTH);
         window.draw(line);
@@ -91,6 +93,16 @@ void tetris::draw(sf::RenderWindow& window){
     linesClear.setFillColor(sf::Color::White);
     linesClear.setPosition(sf::Vector2f(20, TILE_WIDTH*4));
     window.draw(linesClear);
+
+    sf::Text nextBlocks("NEXT SHAPES", font, 18);
+    nextBlocks.setFillColor(sf::Color::White);
+    nextBlocks.setPosition(sf::Vector2f(sidebar.getPosition().x + (sidebar.getGlobalBounds().width-nextBlocks.getGlobalBounds().width)/2, TILE_WIDTH));
+    window.draw(nextBlocks);
+
+    // line.setSize(sf::Vector2f(sidebar.getGlobalBounds().width, 10));
+    // line.setPosition(sidebar.getPosition().x, sidebar.getPosition().y+4*TILE_WIDTH);
+    // line.setFillColor(sf::Color::Black);
+    // window.draw(line);
 
     if(gameOver){
         sf::RectangleShape gameDone;
@@ -126,6 +138,7 @@ void tetris::fall(){
         int y = it.getPosition().y + TILE_WIDTH;
         it.setPosition(sf::Vector2f(it.getPosition().x, y));
     }
+    currShape.pivot.y += TILE_WIDTH;
 }
 
 void tetris::update(){
@@ -139,6 +152,7 @@ void tetris::update(){
         for(auto& it : currShape.blocks){
             it.setPosition(it.getPosition().x+(width-1)/2*TILE_WIDTH+PADDING, it.getPosition().y);
         }
+        currShape.pivot.x += (width-1)/2*TILE_WIDTH+PADDING;
         nextShape = false;
         deleting = false;
         return;
@@ -231,10 +245,10 @@ bool tetris::collisionCheck(){
 
 bool tetris::validRotate(shape& shape){
      for(auto& it : shape.blocks){
-        if(it.getPosition().y +TILE_WIDTH >= TILE_WIDTH * height){
+        if(it.getPosition().y +TILE_WIDTH >= TILE_WIDTH * height || it.getPosition().y <= 0){
             return false;
         }
-        if(it.getPosition().x >= width*TILE_WIDTH+PADDING || it.getPosition().x < PADDING)
+        if(it.getPosition().x >= width*TILE_WIDTH+PADDING || it.getPosition().x <= PADDING)
             return false;
         for(int y = 0; y < board.size(); y++){
             for(int x = 0; x < board[x].size(); x++){
@@ -260,6 +274,42 @@ void tetris::move(){
                 temp.rotateShape();
                 if(validRotate(temp))
                     currShape = temp;
+                else
+                {
+                    int dx = 0;
+                    int dy = 0;
+                    for (int i = 0; i < standardWallkick.size(); i++)
+                    {
+                            for(int j = 0; j < standardWallkick[i].size(); j++){
+                                dx = standardWallkick[i][j].first;
+                                dy = standardWallkick[i][j].second;
+                                temp = currShape;
+                                for(int i = 0; i < temp.blocks.size(); i++)
+                                    temp.blocks[i].setPosition(temp.blocks[i].getPosition().x + dx*TILE_WIDTH, temp.blocks[i].getPosition().y + dy*TILE_WIDTH);
+                                temp.rotateShape();
+                                if (validRotate(temp)){
+                                    currShape = temp;
+                                    return;
+                                }
+                        }
+                    }
+
+                    for (int i = 0; i < reverseWallkick.size(); i++)
+                    {
+                            for(int j = 0; j < reverseWallkick[i].size(); j++){
+                                dx = reverseWallkick[i][j].first;
+                                dy = reverseWallkick[i][j].second;
+                                temp = currShape;
+                                for(int i = 0; i < temp.blocks.size(); i++)
+                                    temp.blocks[i].setPosition(temp.blocks[i].getPosition().x + dx*TILE_WIDTH, temp.blocks[i].getPosition().y + dy*TILE_WIDTH);
+                                temp.rotateShape();
+                                if (validRotate(temp)){
+                                    currShape = temp;
+                                    return;
+                                }
+                        }
+                    }
+                }
             }
             break;
         case Direction::left:
@@ -283,6 +333,7 @@ void tetris::move(){
             for(auto& it : currShape.blocks){
                 it.setPosition(it.getPosition().x - TILE_WIDTH, it.getPosition().y);
             }
+            currShape.pivot.x -= TILE_WIDTH;
             break;
         case Direction::right:
             curr = -1;
@@ -305,6 +356,7 @@ void tetris::move(){
             for(auto& it : currShape.blocks){
                 it.setPosition(it.getPosition().x + TILE_WIDTH, it.getPosition().y);
             }
+            currShape.pivot.x += TILE_WIDTH;
             break;
         case Direction::down:
             fall();
@@ -354,18 +406,11 @@ void tetris::shape::draw(sf::RenderWindow& window){
 }
 
 void tetris::shape::rotateShape(){
-     sf::Vector2f pivot = blocks[1].getPosition();
-
-    // Rotate each block around the pivot point
-    for (int i = 0; i < 4; i++) {
-        // Translate the block so that the pivot point is at the origin
-        sf::Vector2f offset = blocks[i].getPosition() - pivot;
-
-        // Apply the rotation matrix to the block
-        float x = offset.x;
-        float y = offset.y;
-        sf::Vector2f pos = sf::Vector2f( y * -1, x * 1) + pivot;
-        blocks[i].setPosition(sf::Vector2f(y * -1, x ) + pivot);
+    for (auto& block : blocks) {
+        sf::Vector2f pos = block.getPosition();
+        int x = pos.x - pivot.x;
+        int y = pos.y - pivot.y;
+        block.setPosition(sf::Vector2f((int)(-y + pivot.x)/TILE_WIDTH*TILE_WIDTH, (int)(x + pivot.y)/TILE_WIDTH*TILE_WIDTH));
     }
 }
 
@@ -405,7 +450,6 @@ void tetris::loadShapes(){
     I.blocks = {rectangle1, rectangle2, rectangle3, rectangle4};
     shapes["I"] = I;
     shapes["I"].type = "I";
-
 
     sf::Color lightBlue(200,255,220, 255);
     rectangle1.setPosition(sf::Vector2f(0, TILE_WIDTH));
@@ -451,6 +495,7 @@ void tetris::loadShapes(){
     shapes["S"] = S;
     shapes["S"].type = "S";
 
+
     sf::Color lightOrange(227, 197, 197,255);
     rectangle1.setPosition(sf::Vector2f(0, 0));
     rectangle1.setFillColor(lightOrange);
@@ -478,4 +523,36 @@ void tetris::loadShapes(){
     J.blocks = {rectangle1, rectangle2, rectangle3, rectangle4};
     shapes["J"] = J;
     shapes["J"].type = "J";
+
+
+    //set pivots
+    shapes["S"].pivot.x =  1.5f* TILE_WIDTH;
+    shapes["S"].pivot.y = TILE_WIDTH;
+
+    shapes["Z"].pivot.x =  1.5f* TILE_WIDTH;
+    shapes["Z"].pivot.y = TILE_WIDTH;
+
+    shapes["J"].pivot.x =  TILE_WIDTH;
+    shapes["J"].pivot.y = TILE_WIDTH*1.5f;
+
+
+    shapes["L"].pivot.x =  TILE_WIDTH;
+    shapes["L"].pivot.y = TILE_WIDTH*1.5f;
+
+    shapes["T"].pivot.x =  TILE_WIDTH*1.5f;
+    shapes["T"].pivot.y = TILE_WIDTH;
+
+
+    shapes["I"].pivot.x =  TILE_WIDTH*2.5f;
+    shapes["I"].pivot.y = TILE_WIDTH/2.f;
+
+    standardWallkick = {{{-1, 0}, {-1,  1}, {0, -2}, {-1, -2}}, 
+                        {{ 1, 0}, { 1, -1}, {0,  2}, { 1,  2}}, 
+                        {{ 1, 0}, { 1,  1}, {0, -2}, { 1, -2}}, 
+                        {{-1, 0}, {-1, -1}, {0,  2}, {-1,  2}}};
+
+    reverseWallkick =  {{{ 1, 0}, { 1,  1}, { 1, -2}},
+                        {{ 1, 0}, { 1, -1}, { 1,  2}},
+                        {{-1, 0}, {-1,  1}, {-1, -2}},
+                        {{-1, 0}, {-1, -1}, {-1,  2}}};
 }

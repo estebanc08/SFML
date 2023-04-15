@@ -26,6 +26,7 @@ class tetris{
         bool isShape = false;
     };
     struct shape{
+        sf::Vector2f pivot;
         sf::Color color;
         int offset = 0;
         vector<sf::RectangleShape> blocks;
@@ -35,6 +36,7 @@ class tetris{
             this->type = RHS.type;
             this->offset = RHS.offset;
             this->blocks = RHS.blocks;
+            this->pivot = RHS.pivot;
             return *this;
         }
         bool operator==(const shape& RHS) const {
@@ -72,6 +74,8 @@ class tetris{
     bool gameOver = false;
     bool checkGameOver();
     queue<shape> shapeQueue;
+    std::vector<std::vector<std::pair<int, int>>> standardWallkick;
+    std::vector<std::vector<std::pair<int, int>>> reverseWallkick;
 
     public:
     bool deleting = false;
