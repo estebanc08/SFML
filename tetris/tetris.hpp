@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TETRIS_HPP
+#define TETRIS_HPP
 #include <vector>
 #include <iostream>
 #include <SFML/Graphics.hpp>
@@ -31,6 +32,14 @@ class tetris{
         vector<sf::RectangleShape> blocks;
         void rotateShape();
         string type;
+        shape(){};
+        shape(const shape& RHS)
+        {
+            this->type = RHS.type;
+            this->offset = RHS.offset;
+            this->blocks = RHS.blocks;
+            this->pivot = RHS.pivot;
+        }
         shape& operator=(const shape& RHS){
             this->type = RHS.type;
             this->offset = RHS.offset;
@@ -42,7 +51,7 @@ class tetris{
             if (blocks.size() != RHS.blocks.size()) {
                 return false;
             }
-            for (int i = 0; i < blocks.size(); i++) {
+            for (unsigned int i = 0; i < blocks.size(); i++) {
                 if (blocks[i].getPosition() != RHS.blocks[i].getPosition()) {
                     return false;
                 }
@@ -97,3 +106,5 @@ class tetris{
     void draw(sf::RenderWindow& window);
     float getFallingSpeed(){return FALLING_SPEED;};
 };
+
+#endif
