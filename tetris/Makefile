@@ -1,2 +1,2 @@
 rule:
-	@g++ -o tetris.out *.cpp -lsfml-graphics -lsfml-window -lsfml-system && ./tetris.out
+	@g++ -o tetris.out *.cpp -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio && ./tetris.out

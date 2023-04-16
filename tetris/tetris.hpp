@@ -10,7 +10,6 @@
 #include <cmath>
 #include <algorithm>
 #include <set>
-#define PI 3.14159265359f
 #define MOVING_SPEED 15.f
 using namespace std;
 static int TILE_WIDTH = 30;
@@ -55,8 +54,10 @@ class tetris{
         }
         void draw(sf::RenderWindow& window);
     };
+    bool shadowReady = false;
     float FALLING_SPEED = 20.f;
     int linesCleared = 0;
+    unsigned int points = 0;
     sf::RectangleShape sidebar;
     vector<vector<tile>> board;
     void clearRow();
@@ -70,14 +71,19 @@ class tetris{
     shape currShape;
     bool nextShape;
     bool collisionCheck();
-    bool validRotate(shape& shape);
+    bool validPosition(shape& shape);
     bool gameOver = false;
     bool checkGameOver();
     queue<shape> shapeQueue;
     std::vector<std::vector<std::pair<int, int>>> standardWallkick;
     std::vector<std::vector<std::pair<int, int>>> reverseWallkick;
+    shape makeShadow();
+    shape shadow;
 
     public:
+    bool pause = true;
+    set<int> rowsDelete;
+    void animateRowClear(sf::RenderWindow& window);
     bool deleting = false;
     void restart();
     void move();

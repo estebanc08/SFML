@@ -1,9 +1,9 @@
 #include "tetris.hpp"
 sf::Font font;
+sf::Color background;
 
 tetris::tile::tile(){
-    color = sf::Color(200, 230, 255);
-    rect.setFillColor(color);
+    rect.setFillColor(background);
 }
 
 tetris::tetris(){
@@ -19,6 +19,7 @@ tetris::tetris(){
 tetris::tetris(int width, int height){
     this->height = height;
     this->width = width;
+    background = sf::Color(200, 230, 255, 155);
     board.resize(height, vector<tetris::tile>(width));
     for(int y = 0; y < board.size(); y++){
         for(int x = 0; x < board[0].size(); x++){
@@ -50,10 +51,18 @@ void tetris::draw(sf::RenderWindow& window){
             window.draw(it);
         }
     }
-
+    if(!deleting && shadowReady){
+        shadow = makeShadow();
+        for(auto& it : shadow.blocks){
+            int r = it.getFillColor().r, g = it.getFillColor().g, b = it.getFillColor().b;
+            it.setFillColor(sf::Color(r,g,b,100));
+            window.draw(it);
+        }
+    }
+        
     //grid lines
     sf::RectangleShape line(sf::Vector2f(width*TILE_WIDTH, 1));
-    line.setFillColor(sf::Color(160,160,160, 100));
+    line.setFillColor(sf::Color(100,100,100, 200));
     for(int i = 1; i < board.size(); i++){
         line.setPosition(PADDING, i*TILE_WIDTH);
         window.draw(line);
@@ -94,15 +103,15 @@ void tetris::draw(sf::RenderWindow& window){
     linesClear.setPosition(sf::Vector2f(20, TILE_WIDTH*4));
     window.draw(linesClear);
 
+    sf::Text pointText("POINTS\n  " + to_string(points), font, 18);
+    pointText.setFillColor(sf::Color::White);
+    pointText.setPosition(sf::Vector2f(20, TILE_WIDTH*10));
+    window.draw(pointText);
+
     sf::Text nextBlocks("NEXT SHAPES", font, 18);
     nextBlocks.setFillColor(sf::Color::White);
     nextBlocks.setPosition(sf::Vector2f(sidebar.getPosition().x + (sidebar.getGlobalBounds().width-nextBlocks.getGlobalBounds().width)/2, TILE_WIDTH));
     window.draw(nextBlocks);
-
-    // line.setSize(sf::Vector2f(sidebar.getGlobalBounds().width, 10));
-    // line.setPosition(sidebar.getPosition().x, sidebar.getPosition().y+4*TILE_WIDTH);
-    // line.setFillColor(sf::Color::Black);
-    // window.draw(line);
 
     if(gameOver){
         sf::RectangleShape gameDone;
@@ -110,13 +119,52 @@ void tetris::draw(sf::RenderWindow& window){
         gameDone.setSize(sf::Vector2f(TILE_WIDTH*5, TILE_WIDTH*5));
         gameDone.setPosition(width*TILE_WIDTH/2-gameDone.getGlobalBounds().width/2+PADDING, height*TILE_WIDTH/2-gameDone.getGlobalBounds().height/2);
         window.draw(gameDone);
-        sf::Text text("GAME OVER", font, 20);
+        sf::Text text("GAME OVER\n\tPRESS R\nTO RESTART", font, 20);
         text.setFillColor(sf::Color::Black);
         int x = gameDone.getPosition().x + (gameDone.getGlobalBounds().width-text.getGlobalBounds().width)/2;
         int y = gameDone.getPosition().y + (gameDone.getGlobalBounds().height - text.getGlobalBounds().height)/2;
         text.setPosition(x, gameDone.getPosition().y + gameDone.getGlobalBounds().height/3);
         window.draw(text);
     }
+}
+
+void tetris::animateRowClear(sf::RenderWindow& window){
+    for(int i = 0; i < width; i++){
+        window.clear();
+        for(int it : rowsDelete){
+            board[it][i].rect.setFillColor(sf::Color::White);
+        }
+        this_thread::sleep_for(std::chrono::milliseconds(5));
+        draw(window);
+        window.display();
+    }
+
+    for(int i = 0; i < width; i++){
+        window.clear();
+        for(int it : rowsDelete){
+            board[it][i].rect.setFillColor(background);
+        }
+        this_thread::sleep_for(std::chrono::milliseconds(25));
+        draw(window);
+        window.display();
+    }
+
+    for(int it : rowsDelete){
+        board.erase(board.begin() + it);
+        for(int y = it-1; y >= 0; y--){
+            for(int x = 0; x < board[0].size(); x++){
+                int i = board[y][x].rect.getPosition().x;
+                int j = board[y][x].rect.getPosition().y + TILE_WIDTH;
+                board[y][x].rect.setPosition(i, j);
+            }
+        }
+        board.insert(board.begin(), vector<tetris::tile>(width));
+        for(int i = 0; i < width; i++){
+            board[0][i].rect.setPosition(i * TILE_WIDTH+PADDING, 0);
+            board[0][i].rect.setSize(sf::Vector2f(TILE_WIDTH, TILE_WIDTH));
+        }
+    }
+    rowsDelete.clear();
 }
 
 void tetris::fall(){
@@ -155,10 +203,14 @@ void tetris::update(){
         currShape.pivot.x += (width-1)/2*TILE_WIDTH+PADDING;
         nextShape = false;
         deleting = false;
+        shadowReady = true;
+        shadow = makeShadow();
         return;
     }
-    if(direction == Direction::none)
+    // shadow = makeShadow();
+    if(direction == Direction::none && pause){
         return;
+    }
     else
         fall();
 }
@@ -166,7 +218,6 @@ void tetris::update(){
 void tetris::clearRow(){
     deleting = true;
     int row, col;
-    set<int> rowsDelete;
     for(int y = 0; y < board.size(); y++){
         bool delRow = true;
         for(int x = 0; x < board[0].size(); x++){
@@ -183,20 +234,21 @@ void tetris::clearRow(){
     }
     if(rowsDelete.empty())
         return;
-    for(int it : rowsDelete){
-        board.erase(board.begin() + it);
-        for(int y = it-1; y >= 0; y--){
-            for(int x = 0; x < board[0].size(); x++){
-                int i = board[y][x].rect.getPosition().x;
-                int j = board[y][x].rect.getPosition().y + TILE_WIDTH;
-                board[y][x].rect.setPosition(i, j);
-            }
-        }
-        board.insert(board.begin(), vector<tetris::tile>(width));
-        for(int i = 0; i < width; i++){
-            board[0][i].rect.setPosition(i * TILE_WIDTH+PADDING, 0);
-            board[0][i].rect.setSize(sf::Vector2f(TILE_WIDTH, TILE_WIDTH));
-        }
+    switch(rowsDelete.size()){
+        case 1:
+            points += 40;
+            break;
+        case 2:
+            points += 100;
+            break;
+        case 3:
+            points += 300;
+            break;
+        case 4:
+            points += 1200;
+            break;
+        default:
+            break;
     }
 }
 
@@ -210,9 +262,12 @@ bool tetris::checkGameOver(){
 
 void tetris::restart(){
     gameOver = false;
+    shadowReady = false;
+    points = 0;
+    pause = true;
     for(int y = 0; y < board.size(); y++){
         for(int x = 0; x < board[0].size(); x++){
-            board[y][x].rect.setFillColor(sf::Color(200, 230, 255));
+            board[y][x].rect.setFillColor(background);
             board[y][x].isShape = false;
         }
     }
@@ -243,12 +298,12 @@ bool tetris::collisionCheck(){
     return true;
 }
 
-bool tetris::validRotate(shape& shape){
+bool tetris::validPosition(shape& shape){
      for(auto& it : shape.blocks){
-        if(it.getPosition().y +TILE_WIDTH >= TILE_WIDTH * height || it.getPosition().y <= 0){
+        if(it.getPosition().y + TILE_WIDTH >= TILE_WIDTH * height || it.getPosition().y <= 0){
             return false;
         }
-        if(it.getPosition().x >= width*TILE_WIDTH+PADDING || it.getPosition().x <= PADDING)
+        if(it.getPosition().x >= width*TILE_WIDTH+PADDING || it.getPosition().x < PADDING)
             return false;
         for(int y = 0; y < board.size(); y++){
             for(int x = 0; x < board[x].size(); x++){
@@ -267,12 +322,13 @@ void tetris::move(){
     if(deleting)
         return;
     int curr = 0;
+    pause = false;
     switch(direction){
         case Direction::up:
             if(currShape.type != "O"){
                 tetris::shape temp = currShape;
                 temp.rotateShape();
-                if(validRotate(temp))
+                if(validPosition(temp))
                     currShape = temp;
                 else
                 {
@@ -287,7 +343,7 @@ void tetris::move(){
                                 for(int i = 0; i < temp.blocks.size(); i++)
                                     temp.blocks[i].setPosition(temp.blocks[i].getPosition().x + dx*TILE_WIDTH, temp.blocks[i].getPosition().y + dy*TILE_WIDTH);
                                 temp.rotateShape();
-                                if (validRotate(temp)){
+                                if (validPosition(temp)){
                                     currShape = temp;
                                     return;
                                 }
@@ -303,7 +359,7 @@ void tetris::move(){
                                 for(int i = 0; i < temp.blocks.size(); i++)
                                     temp.blocks[i].setPosition(temp.blocks[i].getPosition().x + dx*TILE_WIDTH, temp.blocks[i].getPosition().y + dy*TILE_WIDTH);
                                 temp.rotateShape();
-                                if (validRotate(temp)){
+                                if (validPosition(temp)){
                                     currShape = temp;
                                     return;
                                 }
@@ -359,6 +415,7 @@ void tetris::move(){
             currShape.pivot.x += TILE_WIDTH;
             break;
         case Direction::down:
+            points++;
             fall();
             break;
         default:
@@ -366,6 +423,27 @@ void tetris::move(){
     }
 }
 
+tetris::shape tetris::makeShadow(){
+    int y = height*TILE_WIDTH;
+    for(auto& block : currShape.blocks){
+        y = min(y, (int)block.getPosition().y);
+    }
+    if(y !=0 && !validPosition(currShape))
+        return currShape;
+    shape ret = currShape;
+    bool touching = false;
+    while(true){
+        shape temp = ret;
+        for(auto& block : temp.blocks){
+            block.setPosition(block.getPosition().x, block.getPosition().y + TILE_WIDTH);
+        }
+        if(!validPosition(temp)){
+            return temp;
+        }
+        ret = temp;
+    }
+    return ret;
+}
 int tetris::randomNumber(){
     std::random_device rd;
     std::mt19937 gen(rd());
