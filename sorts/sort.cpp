@@ -22,7 +22,9 @@ sorts::sorts(){
 void sorts::shuffle(){
     original.clear();
     nums.clear();
-    for(int i = 0; i < (int)(width / TILE_WIDTH); i++){
+   if(TILE_WIDTH > width)
+        return;
+    for(int i = 0; i < (int)ceil(width / TILE_WIDTH); i++){
         int num = randomNumber();
         original.push_back(num);
         nums.push_back(num);
@@ -92,7 +94,7 @@ void sorts::updateSize(string size){
         this->size = 0;
         TILE_WIDTH = width+1;
     }
-    else if(size.size() >= 5)
+    else if(size.size() >= 4)
         return;
     else{
         this->size = stoi(size);
@@ -174,7 +176,7 @@ void sorts::draw(sf::RenderWindow& window){
     }
 
     sf::Text numElements("Number of Elements: ", font, 20);
-    numElements.setPosition(30, window.getSize().y - 75);
+    numElements.setPosition(30, height + 175);
     numElements.setFillColor(sf::Color::Black);
     window.draw(numElements);
 }
@@ -183,10 +185,12 @@ void sorts::loadButtons(){
    font.loadFromFile("arial.ttf");
     sf::RectangleShape bubble;
     bubble.setFillColor(babyBlue);
-    bubble.setSize(sf::Vector2f(150, 75));
-    bubble.setPosition(30, height + 40);
+    bubble.setSize(sf::Vector2f(width/10, 75));
+    // int x = width / 4 - bubble.getGlobalBounds().width*2;
+    int x = width / 8;
+    bubble.setPosition(x, height + 40);
     sf::Text bubbleText("Bubble sort", font, 20);
-    int x = (bubble.getGlobalBounds().width - bubbleText.getGlobalBounds().width)/2 + bubble.getPosition().x;
+    x = (bubble.getGlobalBounds().width - bubbleText.getGlobalBounds().width)/2 + bubble.getPosition().x;
     int y = (bubble.getGlobalBounds().height - bubbleText.getGlobalBounds().height)/2 + bubble.getPosition().y-5;
     bubbleText.setPosition(x, y);
     bubbleText.setFillColor(sf::Color::Black);
@@ -194,8 +198,10 @@ void sorts::loadButtons(){
 
     sf::RectangleShape selection;
     selection.setFillColor(babyBlue);
-    selection.setSize(sf::Vector2f(150, 75));
-    selection.setPosition(210, height + 40);
+    selection.setSize(sf::Vector2f(width/10, 75));
+    // x = width / 2 - selection.getGlobalBounds().width*2;
+    x = width/10 + 2*width/8;
+    selection.setPosition(x, height + 40);
     sf::Text selectionText("Selection sort", font, 20);
     x = (selection.getGlobalBounds().width  - selectionText.getGlobalBounds().width)/2 + selection.getPosition().x;
     selectionText.setPosition(x, y);
@@ -204,8 +210,10 @@ void sorts::loadButtons(){
 
      sf::RectangleShape insertion;
     insertion.setFillColor(babyBlue);
-    insertion.setSize(sf::Vector2f(150, 75));
-    insertion.setPosition(390, height + 40);
+    insertion.setSize(sf::Vector2f(width/10, 75));
+    // x = 3 * width / 4 - insertion.getGlobalBounds().width*2;
+    x = 2 * width/10 + 3*width/8;
+    insertion.setPosition(x, height + 40);
     sf::Text insertionText("Insertion sort", font, 20);
     x = (selection.getGlobalBounds().width  - insertionText.getGlobalBounds().width)/2 + insertion.getPosition().x;
     insertionText.setPosition(x, y);
@@ -214,8 +222,9 @@ void sorts::loadButtons(){
 
     sf::RectangleShape shuffle;
     shuffle.setFillColor(babyBlue);
-    shuffle.setSize(sf::Vector2f(150, 75));
-    shuffle.setPosition(width - 180, height+40);
+    shuffle.setSize(sf::Vector2f(width/10, 75));
+    x = 3 * width/10 + 4*width/8;
+    shuffle.setPosition(x, height+40);
     sf::Text shuffleText("New numbers", font, 20);
     x = (shuffle.getGlobalBounds().width  - shuffleText.getGlobalBounds().width)/2 + shuffle.getPosition().x;
     shuffleText.setPosition(x, y);
