@@ -323,6 +323,7 @@ void tetris::move(){
         return;
     int curr = 0;
     pause = false;
+    
     switch(direction){
         case Direction::up:
             if(currShape.type != "O"){

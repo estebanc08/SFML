@@ -27,7 +27,7 @@ int main(){
     std::uniform_int_distribution<> dis(0, numSongs-1);
     int currSong = dis(gen);
     bool stopMusic = false;
-    
+
     thread musicThread([&]() {
         while(!stopMusic) {
             if(currSong >= numSongs){
@@ -77,6 +77,7 @@ int main(){
                             game.direction = game.Direction::up;
                             gamespeed = MOVING_SPEED;
                             released = false;
+                            game.move();
                         }
                         else{
                             game.direction = game.Direction::none;
@@ -87,18 +88,20 @@ int main(){
                     {
                         game.direction = game.Direction::down;
                         gamespeed = MOVING_SPEED;
+                        game.move();
                     }
                     else if (event.key.code == sf::Keyboard::Left)
                     {
                         game.direction = game.Direction::left;
                         gamespeed = MOVING_SPEED;
+                        game.move();
                     }
                     else if (event.key.code == sf::Keyboard::Right)
                     {
                         game.direction = game.Direction::right;
                         gamespeed = MOVING_SPEED;
+                        game.move();
                     }
-                    game.move();
                     keyPressCooldown.restart();
                 }
                 if(event.key.code == sf::Keyboard::R){
