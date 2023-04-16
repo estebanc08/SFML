@@ -278,6 +278,7 @@ void tetris::restart(){
         shapeQueue.push(randomShape());
     deleting = false;
     linesCleared = 0;
+    FALLING_SPEED = 20.f;
 }
 
 bool tetris::collisionCheck(){
