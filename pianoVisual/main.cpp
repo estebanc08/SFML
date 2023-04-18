@@ -5,7 +5,7 @@ std::mutex notes_mutex;
 
 int main(){
     sf::RenderWindow window(sf::VideoMode(WHITE_KEY_WIDTH*56+2*SIDE_PADDING, WHITE_KEY_HEIGHT+VERTICAL_PADDING), "piano");
-    piano Piano;
+    Piano piano;
     string soundPath = "notesTemp";
 
     // Piano.readFile("liebestraum.xml");
@@ -21,40 +21,44 @@ int main(){
 
     // sf::Clock timer;
     // sf::SoundBuffer buffer;
-    // thread readNotes([&](){
+    thread readNotes([&](){
         for (const auto &entry : std::filesystem::directory_iterator(soundPath)) {
             if (entry.is_regular_file()) {
                 sf::SoundBuffer buffer;
                 buffer.loadFromFile(entry.path().string());
                 string path = entry.path().string().substr(soundPath.size()+4);
                 path = path.substr(0, path.size()-4);
-                Piano.notes[path] = buffer;
+                piano.notes[path] = buffer;
             }
         }
-    // }});
-    // sf::SoundBuffer buffer;
-    // buffer.loadFromFile("notesTemp/mf.G2.wav");
-    // Piano.notes["G2"] = buffer;
-    // sf::Sound sound(Piano.notes["G2"]);
-    // sound.play();
-    ifstream readFile("sheetMusic/liebestraum.txt");
-    streampos pos = readFile.tellg();
-    sf::Font font;
-    font.loadFromFile("arial.ttf");
-    sf::Text loadingMessage("Waiting for piano sounds to load\nPlease be Patient", font, 24);
-    loadingMessage.setPosition(window.getSize().x/2 - loadingMessage.getGlobalBounds().width/2, window.getSize().y/2 -loadingMessage.getGlobalBounds().height/2);
-    loadingMessage.setFillColor(sf::Color::Black);
-    // while(readingNotes.joinable()){
-    //         this_thread::sleep_for(chrono::milliseconds(500));
-    //         window.clear(sf::Color::White);
-    //         window.draw(loadingMessage);
-    //         window.display();
-    // }
-    // readingNotes.join();
+    });
+    ifstream readFile("sheetMusic/balladeNo2.txt");
+    piano.readKeysPressed(readFile);
+    readNotes.join();
+    // sf::Font font;
 
-    while(window.isOpen()){
-        Piano.readKeyPressed(readFile, pos);
-        Piano.draw(window);
+    
+    unsigned int currMeasure = 0;
+    unsigned int start = 0;
+
+    //  thread preload([&](){
+        //     if(currMeasure + 1 != piano.sheetMusic.size()){
+        //         for(auto measure : piano.sheetMusic[currMeasure+1]){
+        //             for(auto note : measure.second){
+        //                 sf::Sound sound(piano.notes[note.key]);
+        //                 // sound.setLoop(true);
+        //                 sound.setPlayingOffset(sf::milliseconds(1250));
+        //                 piano.sounds.push_back(sound);
+        //             }
+        //         }
+        //     }
+        // });
+    while(window.isOpen() && currMeasure < piano.sheetMusic.size()){
+        thread music(&Piano::playMusic, &piano, currMeasure, std::ref(start));
+        thread draw(&Piano::draw, &piano, std::ref(window), currMeasure);
+        music.join();
+        draw.join();
+        currMeasure++;
     }
     readFile.close();
     return 0;

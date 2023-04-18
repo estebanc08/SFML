@@ -10,6 +10,7 @@
 #include <regex>
 #include <map>
 #include <sstream>
+#include <algorithm>
 #include <atomic>
 #include "tinyxml2.h"
 #include <unordered_map>
@@ -19,27 +20,40 @@
 #define BLACK_KEY_HEIGHT 85.5f
 #define SIDE_PADDING 50
 #define VERTICAL_PADDING 40
-using namespace tinyxml2;
-
 using namespace std;
 
-class piano{
+class Piano{
+    struct Note{
+        int length;
+        string key;
+        int velocity;
+        sf::Clock soundTimer;
+        Note(string _key, int _length, int _velocity = 0) : length(_length), key(_key), velocity(_velocity){};
+    };
+    // struct Measure{
+    //     map<int, vector<Note>> notesToPlay;
+    // };
+    int currNote = 0;
     bool musicDone = false;
     string currFileName;
     sf::RectangleShape whiteKey, blackKey;
     vector<sf::RectangleShape> whiteKeys;
     vector<sf::RectangleShape> blackKeys;
-    vector<sf::Sound> sounds;
+    unsigned int measure = 0;
+    
     public:
+    vector<sf::Sound> sounds;
     unordered_map<string, sf::SoundBuffer> notes;
-    map<int, vector<string>> notesToPlay;
-    void readKeyPressed(ifstream& readFile, streampos& pos);
+    void readKeysPressed(ifstream& readFile);
     void playKey(sf::Vector2f& mousePos);
     void playKey(string keyName);
     void readFile(string name);
-    piano();
-    void draw(sf::RenderWindow& window);
+    void playMusic(unsigned int currMeasure, unsigned int &start);
+    Piano();
+    vector<map<int, vector<Note>>> sheetMusic;
+    void draw(sf::RenderWindow& window, unsigned int currMeasure);
     atomic_bool quit = false;
+    
 };
 
 #endif
