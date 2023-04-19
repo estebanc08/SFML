@@ -30,7 +30,7 @@ int main(){
         }
     });
     thread read([&](){
-        ifstream readFile("sheetMusic/norma.txt");
+        ifstream readFile("sheetMusic/ocean.txt");
         piano.readKeysPressed(readFile);
         readFile.close();
     });

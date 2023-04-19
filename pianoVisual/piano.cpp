@@ -1,6 +1,6 @@
 #include "piano.hpp"
 sf::Clock musicTimer;
-static int noteHold = 800;
+static int noteHold = 120;
 
 Piano::Piano(){
     whiteKey.setSize(sf::Vector2f(WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT));
@@ -88,7 +88,10 @@ void Piano::draw(sf::RenderWindow& window, unsigned int currMeasure){
                 if(keyStr == "rest")
                     continue;
                 if(keyStr[1] != 'b'){
-                    key = keyStr[0] - 'A' + 7*(keyStr[1]-'0');
+                    if(keyStr[0] == 'A' || keyStr[0] == 'B')
+                        key = keyStr[0] - 'A' + 7*(keyStr[1]-'0');
+                    else
+                        key = keyStr[0] - 'A' + 7*(keyStr[1]-'0'-1);
                     whiteKeys[key].setFillColor(sf::Color::Green);
                     window.draw(whiteKeys[key]);
                 }
