@@ -22,13 +22,13 @@
 #define VERTICAL_PADDING 40
 using namespace std;
 
-class Piano{
+struct Piano{
     struct Note{
         int length;
         string key;
         int velocity;
         sf::Clock soundTimer;
-        Note(string _key, int _length, int _velocity = 0) : length(_length), key(_key), velocity(_velocity){};
+        Note(string _key, int _length,  int _velocity = 0) : length(_length), key(_key), velocity(_velocity){};
     };
     // struct Measure{
     //     map<int, vector<Note>> notesToPlay;

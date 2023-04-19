@@ -1,12 +1,11 @@
 #include "piano.hpp"
-#include <mutex>
+// #include "soundStream.hpp"
 #include <sys/resource.h>
-std::mutex notes_mutex;
-
+#include <queue>
 int main(){
     sf::RenderWindow window(sf::VideoMode(WHITE_KEY_WIDTH*56+2*SIDE_PADDING, WHITE_KEY_HEIGHT+VERTICAL_PADDING), "piano");
     Piano piano;
-    string soundPath = "notesTemp";
+    string soundPath = "notes";
 
     // Piano.readFile("liebestraum.xml");
     // string songsPath = "sheetMusic";    
@@ -19,47 +18,35 @@ int main(){
     //     }
     // });
 
-    // sf::Clock timer;
-    // sf::SoundBuffer buffer;
     thread readNotes([&](){
         for (const auto &entry : std::filesystem::directory_iterator(soundPath)) {
             if (entry.is_regular_file()) {
                 sf::SoundBuffer buffer;
                 buffer.loadFromFile(entry.path().string());
-                string path = entry.path().string().substr(soundPath.size()+4);
+                string path = entry.path().string().substr(soundPath.size()+1);
                 path = path.substr(0, path.size()-4);
                 piano.notes[path] = buffer;
             }
         }
     });
-    ifstream readFile("sheetMusic/balladeNo2.txt");
-    piano.readKeysPressed(readFile);
+    thread read([&](){
+        ifstream readFile("sheetMusic/ocean.txt");
+        piano.readKeysPressed(readFile);
+        readFile.close();
+    });
+    read.join();
     readNotes.join();
-    // sf::Font font;
-
-    
     unsigned int currMeasure = 0;
     unsigned int start = 0;
 
-    //  thread preload([&](){
-        //     if(currMeasure + 1 != piano.sheetMusic.size()){
-        //         for(auto measure : piano.sheetMusic[currMeasure+1]){
-        //             for(auto note : measure.second){
-        //                 sf::Sound sound(piano.notes[note.key]);
-        //                 // sound.setLoop(true);
-        //                 sound.setPlayingOffset(sf::milliseconds(1250));
-        //                 piano.sounds.push_back(sound);
-        //             }
-        //         }
-        //     }
-        // });
     while(window.isOpen() && currMeasure < piano.sheetMusic.size()){
         thread music(&Piano::playMusic, &piano, currMeasure, std::ref(start));
         thread draw(&Piano::draw, &piano, std::ref(window), currMeasure);
         music.join();
         draw.join();
         currMeasure++;
+        if(piano.quit)
+            window.close();
     }
-    readFile.close();
     return 0;
 }

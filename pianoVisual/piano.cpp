@@ -1,6 +1,6 @@
 #include "piano.hpp"
 sf::Clock musicTimer;
-static int noteHold = 450;
+static int noteHold = 120;
 
 Piano::Piano(){
     whiteKey.setSize(sf::Vector2f(WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT));
@@ -32,7 +32,7 @@ void Piano::playMusic(unsigned int currMeasure, unsigned int &start){
             for(auto note : measure.second){
                 sf::Sound sound(notes[note.key]);
                 // sound.setLoop(true);
-                sound.setPlayingOffset(sf::milliseconds(1250));
+                sound.setPlayingOffset(sf::milliseconds(1000));
                 sounds.push_back(sound);
             }
         }
@@ -63,7 +63,6 @@ void Piano::draw(sf::RenderWindow& window, unsigned int currMeasure){
         sf::Event event;
         if(window.pollEvent(event)){
             if(event.type == sf::Event::Closed){
-                window.close();
                 quit = true;
                 return;
             }
@@ -80,27 +79,28 @@ void Piano::draw(sf::RenderWindow& window, unsigned int currMeasure){
                 window.draw(line);
             }
             for(auto keys : currNotes->second){
+                string keyStr = keys.key;
                 int key = 0;
-                if(keys.key[1] != 'b'){
-                    key = keys.key[0] - 'A' + 7*(keys.key[1]-'0');
+                if(keyStr[1] != 'b'){
+                    key = keyStr[0] - 'A' + 7*(keyStr[1]-'0');
                     whiteKeys[key].setFillColor(sf::Color::Green);
                     window.draw(whiteKeys[key]);
                 }
                 else{
-                    if(keys.key[0] == 'B'){
-                        key = 5*(keys.key[2]- '0');
+                    if(keyStr[0] == 'B'){
+                        key = 5*(keyStr[2]- '0');
                     }
-                    else if(keys.key[0] == 'D'){
-                        key = 5*(keys.key[2]- '0' -1) + 1;
+                    else if(keyStr[0] == 'D'){
+                        key = 5*(keyStr[2]- '0' -1) + 1;
                     }
-                    else if(keys.key[0] == 'E'){
-                        key = 5*(keys.key[2]- '0' -1) + 2;
+                    else if(keyStr[0] == 'E'){
+                        key = 5*(keyStr[2]- '0' -1) + 2;
                     }
-                    else if(keys.key[0] == 'G'){
-                        key = 5*(keys.key[2]- '0' -1) + 3;
+                    else if(keyStr[0] == 'G'){
+                        key = 5*(keyStr[2]- '0' -1) + 3;
                     }
                     else{
-                        key = 5*(keys.key[2]-'0'-1)+4;
+                        key = 5*(keyStr[2]-'0'-1)+4;
                     }
                     blackKeys[key].setFillColor(sf::Color::Blue);
                     window.draw(blackKeys[key]);
@@ -142,7 +142,6 @@ void Piano::readKeysPressed(ifstream& readFile){
     //read first measure
     getline(readFile, input);
     map<int, vector<Note>> notesPerMeasure;
-
     while (getline(readFile, input)) {
         regex reg("^Measure.*");
         if (!regex_match(input, reg)) {
@@ -173,6 +172,8 @@ void Piano::readKeysPressed(ifstream& readFile){
             notesPerMeasure.clear();
         }
     }
+    //last measure
+    sheetMusic.push_back(notesPerMeasure);
 }
 
 //Not needed for now
