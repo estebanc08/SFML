@@ -14,6 +14,7 @@
 #include <atomic>
 #include "tinyxml2.h"
 #include <unordered_map>
+#include <queue>
 #define WHITE_KEY_WIDTH 23.5f
 #define WHITE_KEY_HEIGHT 136.5f
 #define BLACK_KEY_WIDTH 13.5f
@@ -21,6 +22,7 @@
 #define SIDE_PADDING 50
 #define VERTICAL_PADDING 40
 using namespace std;
+static int noteHold = 120;
 
 struct Piano{
     struct Note{

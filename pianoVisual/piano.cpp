@@ -1,6 +1,5 @@
 #include "piano.hpp"
 sf::Clock musicTimer;
-static int noteHold = 120;
 
 Piano::Piano(){
     whiteKey.setSize(sf::Vector2f(WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT));
@@ -28,34 +27,27 @@ Piano::Piano(){
 void Piano::playMusic(unsigned int currMeasure, unsigned int &start){
     unsigned int currStart = start;
     // if(currMeasure + 1 < sheetMusic.size()){
-        // cout << "Measure: " << currMeasure << endl;
         for(auto measure : sheetMusic[currMeasure]){
             for(auto note : measure.second){
-                // cout << note.key << " ";
                 sf::Sound sound(notes[note.key]);
                 // sound.setLoop(true);
-                sound.setPlayingOffset(sf::milliseconds(1000));
+                sound.setPlayingOffset(sf::milliseconds(0));
                 sounds.push_back(sound);
             }
-            // cout << endl;
         }
     // }
-    // cout << endl;
     for(auto currNotes = sheetMusic[currMeasure].begin(); currNotes != sheetMusic[currMeasure].end() && !quit; currNotes++){
         if(quit)
             return;
         unsigned int end = currStart;
-        // if(musicTimer.getElapsedTime().asMilliseconds() < noteHold)
-        //     sf::sleep(sf::milliseconds(noteHold - musicTimer.getElapsedTime().asMilliseconds()));
         for(; currStart < currNotes->second.size()+end; currStart++){
-            // cout << "playing" << endl;
             sounds[currStart].play();
         }
         sf::sleep(sf::milliseconds(noteHold));
         musicTimer.restart();
     }
-    sounds.clear();
-    // sounds.erase(std::remove_if(sounds.begin(), sounds.end(), [](const sf::Sound& s){ return s.getStatus() == sf::Sound::Stopped; }), sounds.end());
+    // sounds.clear();
+    sounds.erase(std::remove_if(sounds.begin(), sounds.end(), [](const sf::Sound& s){ return s.getStatus() == sf::Sound::Stopped; }), sounds.end());
     start = sounds.size();
 }
 void Piano::draw(sf::RenderWindow& window, unsigned int currMeasure){

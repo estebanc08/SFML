@@ -3,21 +3,21 @@
 #include <queue>
 
 // namespace fs = std::filesystem;
-// void process_file(const fs::path& file_path, Piano& piano) {
+// void readFile(const fs::path& file_path, Piano& piano) {
 //     cout << file_path << endl;
 
 //     piano.readFile(file_path);
 // }
 
-// void process_directory(const fs::path& dir_path, Piano& piano) {
+// void readDirectory(const fs::path& dir_path, Piano& piano) {
 //     for (const auto& entry : fs::directory_iterator(dir_path)) {
 //         if (entry.is_directory()) {
 //             // Recursively process subdirectories
-//             process_directory(entry.path(), piano);
+//             readDirectory(entry.path(), piano);
 //         } 
 //         else if (entry.is_regular_file()) {
 //             // Process regular files
-//             process_file(entry.path(), piano);
+//             readFile(entry.path(), piano);
 //         }
 //     }
 // }
@@ -27,7 +27,7 @@ int main(){
     Piano piano;
     string soundPath = "notes";
 
-    // process_directory("xmlInputs", piano);
+    // readDirectory("xmlInputs", piano);
 
     thread readNotes([&](){
         for (const auto &entry : std::filesystem::directory_iterator(soundPath)) {
@@ -49,7 +49,7 @@ int main(){
     readNotes.join();
     unsigned int currMeasure = 0;
     unsigned int start = 0;
-
+    sf::Clock musicTimer;
     while(window.isOpen() && currMeasure < piano.sheetMusic.size()){
         thread music(&Piano::playMusic, &piano, currMeasure, std::ref(start));
         thread draw(&Piano::draw, &piano, std::ref(window), currMeasure);
