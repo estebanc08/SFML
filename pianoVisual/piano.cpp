@@ -1,6 +1,6 @@
 #include "piano.hpp"
 sf::Clock musicTimer;
-static int noteHold = 120;
+static int noteHold = 800;
 
 Piano::Piano(){
     whiteKey.setSize(sf::Vector2f(WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT));
@@ -28,15 +28,19 @@ Piano::Piano(){
 void Piano::playMusic(unsigned int currMeasure, unsigned int &start){
     unsigned int currStart = start;
     // if(currMeasure + 1 < sheetMusic.size()){
+        // cout << "Measure: " << currMeasure << endl;
         for(auto measure : sheetMusic[currMeasure]){
             for(auto note : measure.second){
+                // cout << note.key << " ";
                 sf::Sound sound(notes[note.key]);
                 // sound.setLoop(true);
                 sound.setPlayingOffset(sf::milliseconds(1000));
                 sounds.push_back(sound);
             }
+            // cout << endl;
         }
     // }
+    // cout << endl;
     for(auto currNotes = sheetMusic[currMeasure].begin(); currNotes != sheetMusic[currMeasure].end() && !quit; currNotes++){
         if(quit)
             return;
@@ -81,6 +85,8 @@ void Piano::draw(sf::RenderWindow& window, unsigned int currMeasure){
             for(auto keys : currNotes->second){
                 string keyStr = keys.key;
                 int key = 0;
+                if(keyStr == "rest")
+                    continue;
                 if(keyStr[1] != 'b'){
                     key = keyStr[0] - 'A' + 7*(keyStr[1]-'0');
                     whiteKeys[key].setFillColor(sf::Color::Green);
@@ -166,6 +172,10 @@ void Piano::readKeysPressed(ifstream& readFile){
                 Note currNote(note, std::stoi(length));
                 notesPerMeasure[std::stoi(posX)].push_back(currNote);
              }
+            //  else{
+            //     Note currNote("rest", 0); //TODO work on how to store rests
+            //     notesPerMeasure[std::stoi(posX)].push_back(currNote);
+            //  }
         }
         else{
             sheetMusic.push_back(notesPerMeasure);
@@ -221,6 +231,21 @@ void Piano::readFile(string name){
                     if (dur != nullptr) {
                         dur->QueryIntText(&duration);
                     }
+                    // double prevX = INT_MIN, nextX = INT_MIN;
+                    // tinyxml2::XMLElement* prev = note->PreviousSiblingElement();
+                    // if (prev != nullptr && prev->Attribute("default-x") != nullptr) {
+                    //     prevX = std::stod(prev->Attribute("default-x"));
+                    // }
+
+                    // // Get next sibling
+                    // tinyxml2::XMLElement* next = note->NextSiblingElement();
+
+                    // // Check if next sibling exists and has a default-x attribute
+                    // if (next != nullptr && next->Attribute("default-x") != nullptr) {
+                    //     nextX = std::stod(next->Attribute("default-x"));
+                    // }
+                    
+                    // outFile << "rest " << duration << " " << "\n";
                     outFile << "rest " << duration <<"\n";
                     continue;
                 }   
