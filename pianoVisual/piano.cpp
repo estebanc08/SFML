@@ -207,11 +207,12 @@ void Piano::playKey(sf::Vector2f& mousePos){
 
 void Piano::readFile(string name){
     tinyxml2::XMLDocument doc;
-    string newName = "xmlInputs/" + name;
-    const char* fileName = newName.c_str();
+    const char* fileName = name.c_str();
 
     doc.LoadFile(fileName);
-    newName = name.substr(0, name.size()-4) + ".txt";
+    std::size_t lastSlash = name.find_last_of('/');
+    std::string newName = name.substr(lastSlash + 1);
+    newName = newName.substr(0, newName.size() - 4) + ".txt";
     currFileName  = "sheetMusic/" + newName;
     ofstream outFile(currFileName);
     // Access the root element
