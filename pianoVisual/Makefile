@@ -8,10 +8,3 @@ piano: piano.cpp main.cpp *.hpp
 .PHONY: clean
 clean:
 	@rm -f piano.out
-
-install-deps:
-	sudo apt-get update
-    sudo apt-get install libsfml-dev
-	git clone https://github.com/leethomason/tinyxml2.git
-	cd tinyxml2
-	make install
