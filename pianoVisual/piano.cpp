@@ -24,6 +24,8 @@ Piano::Piano(){
     }
 }
 
+
+//MOVED TO MAIN... TEMP
 void Piano::playMusic(unsigned int currMeasure, unsigned int &start){
     unsigned int currStart = start;
     // if(currMeasure + 1 < sheetMusic.size()){
@@ -50,6 +52,8 @@ void Piano::playMusic(unsigned int currMeasure, unsigned int &start){
     sounds.erase(std::remove_if(sounds.begin(), sounds.end(), [](const sf::Sound& s){ return s.getStatus() == sf::Sound::Stopped; }), sounds.end());
     start = sounds.size();
 }
+
+//MOVED TO MAIN... TEMP
 void Piano::draw(sf::RenderWindow& window, unsigned int currMeasure){
     window.clear();
     sf::RectangleShape line(sf::Vector2f(1, WHITE_KEY_HEIGHT));
@@ -179,6 +183,15 @@ void Piano::readKeysPressed(ifstream& readFile){
     }
     //last measure
     sheetMusic.push_back(notesPerMeasure);
+    
+    for(auto measure : sheetMusic){
+        for(auto notes : measure){
+            vector<Note> temp;
+            for(auto note : notes.second)
+                temp.push_back(note);
+            sheetNotes.push_back(temp);
+        }
+    }
 }
 
 //Not needed for now

@@ -22,7 +22,7 @@
 #define SIDE_PADDING 50
 #define VERTICAL_PADDING 40
 using namespace std;
-static int noteHold = 120;
+static int noteHold = 100;
 
 struct Piano{
     struct Note{
@@ -44,6 +44,7 @@ struct Piano{
     unsigned int measure = 0;
     
     public:
+    vector<vector<Note>> sheetNotes;
     vector<sf::Sound> sounds;
     unordered_map<string, sf::SoundBuffer> notes;
     void readKeysPressed(ifstream& readFile);
