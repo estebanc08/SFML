@@ -47,11 +47,11 @@ int main(){
     });
     read.join();
     readNotes.join();
-    
+
     sf::RectangleShape line(sf::Vector2f(1, WHITE_KEY_HEIGHT));
     line.setFillColor(sf::Color::Black);
     sf::Event event;
-    vector<std::shared_ptr<sf::Sound>> sounds;
+    vector<unique_ptr<sf::Sound>> sounds;
     unsigned int start = 0;
     window.setActive(true);
 
@@ -79,8 +79,8 @@ int main(){
             }
             window.display();
             for(auto note = notes->begin(); note != notes->end(); note++){
-                auto sound = std::make_shared<sf::Sound>(piano.notes[note->key]);
-                sounds.push_back(sound);
+                auto sound = std::make_unique<sf::Sound>(piano.notes[note->key]);
+                sounds.emplace_back(std::move(sound));
                 string keyStr = note->key;
                 int key = 0;
                 if(keyStr == "rest")
@@ -128,7 +128,7 @@ int main(){
             }
             window.display();
             sf::sleep(sf::milliseconds(noteHold));
-            sounds.erase(std::remove_if(sounds.begin(), sounds.end(), [](const std::shared_ptr<sf::Sound>& s){ return s->getStatus() == sf::Sound::Status::Stopped; }), sounds.end());
+            sounds.erase(std::remove_if(sounds.begin(), sounds.end(), [](const std::unique_ptr<sf::Sound>& s){ return s->getStatus() == sf::Sound::Status::Stopped; }), sounds.end());
             start = sounds.size();
             notes++;
         }
