@@ -2,46 +2,48 @@
 #include <sys/resource.h>
 #include <queue>
 
-// namespace fs = std::filesystem;
-// void readFile(const fs::path& file_path, Piano& piano) {
-//     cout << file_path << endl;
+namespace fs = std::filesystem;
+void readFile(const fs::path& file_path, Piano& piano) {
+    std::cout << file_path << std::endl;
 
-//     piano.readFile(file_path);
-// }
+    piano.readFile(file_path);
+}
 
-// void readDirectory(const fs::path& dir_path, Piano& piano) {
-//     for (const auto& entry : fs::directory_iterator(dir_path)) {
-//         if (entry.is_directory()) {
-//             // Recursively process subdirectories
-//             readDirectory(entry.path(), piano);
-//         } 
-//         else if (entry.is_regular_file()) {
-//             // Process regular files
-//             readFile(entry.path(), piano);
-//         }
-//     }
-// }
+void readDirectory(const fs::path& dir_path, Piano& piano) {
+    for (const auto& entry : fs::directory_iterator(dir_path)) {
+        if (entry.is_directory()) {
+            // Recursively process subdirectories
+            readDirectory(entry.path(), piano);
+        } 
+        else if (entry.is_regular_file()) {
+            // Process regular files
+            readFile(entry.path(), piano);
+        }
+    }
+}
 
 int main(){
     sf::RenderWindow window(sf::VideoMode(WHITE_KEY_WIDTH*56+2*SIDE_PADDING, WHITE_KEY_HEIGHT+VERTICAL_PADDING), "piano");
     Piano piano;
-    string soundPath = "notes";
+    std::string soundPath = "notes";
 
     // readDirectory("xmlInputs", piano);
 
-    thread readNotes([&](){
+    std::thread readNotes([&](){
         for (const auto &entry : std::filesystem::directory_iterator(soundPath)) {
             if (entry.is_regular_file()) {
                 sf::SoundBuffer buffer;
                 buffer.loadFromFile(entry.path().string());
-                string path = entry.path().string().substr(soundPath.size()+1);
+                std::string path = entry.path().string().substr(soundPath.size()+1);
                 path = path.substr(0, path.size()-4);
                 piano.notes[path] = buffer;
             }
         }
     });
-    thread read([&](){
-        ifstream readFile("sheetMusic/Op25No12.txt");
+
+
+    std::thread read([&](){
+        std::ifstream readFile("sheetMusic/Op25No12.txt");
         piano.readKeysPressed(readFile);
         readFile.close();
     });
@@ -51,11 +53,11 @@ int main(){
     sf::RectangleShape line(sf::Vector2f(1, WHITE_KEY_HEIGHT));
     line.setFillColor(sf::Color::Black);
     sf::Event event;
-    vector<unique_ptr<sf::Sound>> sounds;
+    std::vector<std::unique_ptr<sf::Sound>> sounds;
     unsigned int start = 0;
-    window.setActive(true);
-
     auto notes = piano.sheetNotes.begin();
+
+    
     while(window.isOpen()){
          while(window.pollEvent(event)){
              if(event.type == sf::Event::Closed){
@@ -79,9 +81,9 @@ int main(){
             }
             window.display();
             for(auto note = notes->begin(); note != notes->end(); note++){
-                auto sound = std::make_unique<sf::Sound>(piano.notes[note->key]);
+                auto sound = std::make_unique<sf::Sound>(piano.notes[(*note)->getKey()]);
                 sounds.emplace_back(std::move(sound));
-                string keyStr = note->key;
+                std::string keyStr = (*note)->getKey();
                 int key = 0;
                 if(keyStr == "rest")
                     continue;

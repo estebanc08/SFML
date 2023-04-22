@@ -15,48 +15,38 @@
 #include "tinyxml2.h"
 #include <unordered_map>
 #include <queue>
+#include "noteClass/includes.hpp"
 #define WHITE_KEY_WIDTH 23.5f
 #define WHITE_KEY_HEIGHT 136.5f
 #define BLACK_KEY_WIDTH 13.5f
 #define BLACK_KEY_HEIGHT 85.5f
 #define SIDE_PADDING 50
 #define VERTICAL_PADDING 40
-using namespace std;
-static int noteHold = 100;
+static int noteHold = 120;
 
 struct Piano{
-    struct Note{
-        int length;
-        string key;
-        int velocity;
-        sf::Clock soundTimer;
-        Note(string _key, int _length,  int _velocity = 0) : length(_length), key(_key), velocity(_velocity){};
-    };
     // struct Measure{
     //     map<int, vector<Note>> notesToPlay;
     // };
     int currNote = 0;
     bool musicDone = false;
-    string currFileName;
+    std::string currFileName;
     sf::RectangleShape whiteKey, blackKey;
-    vector<sf::RectangleShape> whiteKeys;
-    vector<sf::RectangleShape> blackKeys;
+    std::vector<sf::RectangleShape> whiteKeys;
+    std::vector<sf::RectangleShape> blackKeys;
     unsigned int measure = 0;
     
     public:
-    vector<vector<Note>> sheetNotes;
-    vector<sf::Sound> sounds;
-    unordered_map<string, sf::SoundBuffer> notes;
-    void readKeysPressed(ifstream& readFile);
+    std::vector<std::vector<Note*>> sheetNotes;
+    std::vector<sf::Sound> sounds;
+    std::unordered_map<std::string, sf::SoundBuffer> notes;
+    void readKeysPressed(std::ifstream& readFile);
     void playKey(sf::Vector2f& mousePos);
-    void playKey(string keyName);
-    void readFile(string name);
-    void playMusic(unsigned int currMeasure, unsigned int &start);
+    void playKey(std::string keyName);
+    void readFile(std::string name);
     Piano();
-    vector<map<int, vector<Note>>> sheetMusic;
-    void draw(sf::RenderWindow& window, unsigned int currMeasure);
-    atomic_bool quit = false;
-    
+    std::vector<std::map<int, std::vector<Note*>>> sheetMusic;
+    std::atomic_bool quit = false; 
 };
 
 #endif
