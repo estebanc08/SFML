@@ -24,164 +24,58 @@ Piano::Piano(){
     }
 }
 
-void Piano::readKeysPressed(std::ifstream& readFile){
-    std::string input = "";
-    //read first measure
-    getline(readFile, input);
-    std::map<int, std::vector<Note*>> notesPerMeasure;
-    while (getline(readFile, input)) {
-        std::regex reg("^Measure.*");
-        if (!regex_match(input, reg)) {
-            std::stringstream stream(input);
-            std::string note, posX, duration;
-            stream >> note;
-            if(note != "rest")
-                stream >> posX;
-            stream >> duration;
-            std::transform(duration.begin(), duration.end(), duration.begin(), [](unsigned char c){ return std::tolower(c); });
-            if(note == "rest"){
-                stream >> duration;
-                Rest currNote(noteHold);
-            }
-            else{
-                //convert to flat note if sharp or flat
 
-                if(duration == "sixteenth" || duration == "16th"){
-                    Sixteenth* currNote = new Sixteenth(note, noteHold);
-                    notesPerMeasure[std::stoi(posX)].push_back(currNote);
-                }
-                else if(duration == "eighth" || duration == "8th"){
-                    Eighth* currNote = new Eighth(note, noteHold);
-                    notesPerMeasure[std::stoi(posX)].push_back(currNote);
-                }
-                else if(duration == "quarter"){
-                    Quarter* currNote = new Quarter(note, noteHold);
-                    notesPerMeasure[std::stoi(posX)].push_back(currNote);
-                }
-                else if(duration == "half"){
-                    Half* currNote = new Half(note, noteHold);
-                    notesPerMeasure[std::stoi(posX)].push_back(currNote);
-                }
-                else if(duration == "full"){
-                    Full* currNote = new Full(note, noteHold);
-                    notesPerMeasure[std::stoi(posX)].push_back(currNote);
-                }
-            }
-            // else{
-            //    Rest currNote(duration);
-            //    notesPerMeasure[std::stoi(posX)].push_back(currNote);
-            // }
-        }
-        else{
-            sheetMusic.push_back(notesPerMeasure);
-            notesPerMeasure.clear();
-        }
+void Piano::readMidi(const std::string path){
+    smf::MidiFile midifile;
+    if (!midifile.read(path)) {
+        std::cerr << "Failed to read MIDI file: " << path << std::endl;
+        return;
     }
-    //last measure
-    sheetMusic.push_back(notesPerMeasure);
-    
-    for(auto measure : sheetMusic){
-        for(auto notes : measure){
-            std::vector<Note*> temp;
-            for(auto note : notes.second)
-                temp.push_back(note);
-            sheetNotes.push_back(temp);
-        }
-    }
-}
 
-//Not needed for now
-void Piano::playKey(sf::Vector2f& mousePos){
-    for(unsigned int i = 0; i < blackKeys.size(); i++){
-        if(blackKeys[i].getGlobalBounds().contains(mousePos)){
-            std::cout << "black clicked" << std::endl;
-            return;
-        }
-    }
-    for(unsigned int i = 0; i < whiteKeys.size(); i++){
-        if(whiteKeys[i].getGlobalBounds().contains(mousePos)){
-            std::cout << "white clicked" << std::endl;
-            return;
-        }
-    }
-}
-
-void Piano::readFile(std::string name){
-    tinyxml2::XMLDocument doc;
-    const char* fileName = name.c_str();
-
-    doc.LoadFile(fileName);
-    std::size_t lastSlash = name.find_last_of('/');
-    std::string newName = name.substr(lastSlash + 1);
-    newName = newName.substr(0, newName.size() - 4) + ".txt";
-    currFileName  = "sheetMusic/" + newName;
-    std::ofstream outFile(currFileName);
-    // Access the root element
-    tinyxml2::XMLElement* root = doc.FirstChildElement("score-partwise");
-
-  // Access child elements and their attributes
-    for (tinyxml2::XMLElement* part = root->FirstChildElement("part"); part != nullptr; part = part->NextSiblingElement("part")) {
-        // const char* id = part->Attribute("id");
-        for (tinyxml2::XMLElement* measure = part->FirstChildElement("measure"); measure != nullptr; measure = measure->NextSiblingElement("measure")) {
-            const char* number = measure->Attribute("number");
-            outFile << "Measure Number: " << number << "\n";
-            for (tinyxml2::XMLElement* note = measure->FirstChildElement("note"); note != nullptr; note = note->NextSiblingElement("note")) {
-                const char* printObject = note->Attribute("print-object");
-                tinyxml2::XMLElement* rest = note->FirstChildElement("rest");
-                if(printObject)
-                    continue; 
-                if (rest) {
-                    tinyxml2::XMLElement* duration = note->FirstChildElement("type");
-                    if (duration == nullptr) {
-                        duration = note->FirstChildElement("duration");
-                    }
-                    // double prevX = INT_MIN, nextX = INT_MIN;
-                    // tinyxml2::XMLElement* prev = note->PreviousSiblingElement();
-                    // if (prev != nullptr && prev->Attribute("default-x") != nullptr) {
-                    //     prevX = std::stod(prev->Attribute("default-x"));
-                    // }
-
-                    // // Get next sibling
-                    // tinyxml2::XMLElement* next = note->NextSiblingElement();
-
-                    // // Check if next sibling exists and has a default-x attribute
-                    // if (next != nullptr && next->Attribute("default-x") != nullptr) {
-                    //     nextX = std::stod(next->Attribute("default-x"));
-                    // }
-                    
-                    // outFile << "rest " << duration << " " << "\n";
-                    outFile << "rest " << duration->GetText() <<"\n";
-                    continue;
-                }   
-                tinyxml2::XMLElement* pitch = note->FirstChildElement("pitch");
-                tinyxml2::XMLElement* step = pitch->FirstChildElement("step");
-                tinyxml2::XMLElement* octave = pitch->FirstChildElement("octave");
-                tinyxml2::XMLElement* alt = pitch->FirstChildElement("alter");
-                tinyxml2::XMLElement* type = note->FirstChildElement("type");
-                std::string noteType = step->GetText();
-                noteType += octave->GetText();
-                int altCount = 0;
-                if(alt){
-                    altCount = std::stoi(alt->GetText());
-                    if(altCount == -1){
-                        noteType = noteType.substr(0,1) + "b" + noteType.substr(1);
-                    }
-                    else if(altCount == 1){
-                        char toFlat = noteType[0];
-                        toFlat += 1;
-                        int octave = noteType[1]-'0';
-                        if(toFlat > 'G'){
-                            toFlat = 'A';
-                            octave++;
-                        }
-                        noteType = std::string(1, toFlat) + "b" + std::to_string(octave);
-                    }
+    midifile.doTimeAnalysis();
+    midifile.linkNotePairs();
+    for (int track_num = 0; track_num < midifile.getTrackCount(); track_num++) {
+        smf::MidiEventList track = midifile[track_num];
+        for (int i = 0; i < track.size(); i++) {
+            const smf::MidiEvent& event = track[i];
+           if (event.isNoteOn()) {
+                int pitch = event.getP1();
+                int velocity = event.getP2();
+                pitch -= 21;
+                int noteNum;
+                std::string key;
+                switch (pitch % 12) {
+                    case 0: key = "A"  + std::to_string((pitch / 12)); 
+                    break; 
+                    case 1: key = "Bb" + std::to_string((pitch / 12));
+                    break; 
+                    case 2: key = "B" + std::to_string((pitch / 12)); 
+                    break; 
+                    case 3: key = "C" + std::to_string((pitch / 12) + 1); 
+                    break; 
+                    case 4: key = "Db" + std::to_string((pitch / 12) + 1);
+                    break; 
+                    case 5: key = "D" + std::to_string((pitch / 12) + 1); 
+                    break;
+                    case 6: key = "Eb" + std::to_string((pitch / 12) + 1);
+                    break;
+                    case 7: key = "E" + std::to_string((pitch / 12) + 1); 
+                    break;
+                    case 8: key = "F" + std::to_string((pitch / 12) + 1); 
+                    break;
+                    case 9: key = "Gb" + std::to_string((pitch / 12) + 1);
+                    break;
+                    case 10: key = "G" + std::to_string((pitch / 12) + 1); 
+                    break;
+                    case 11: key = "Ab" + std::to_string((pitch / 12 + 1));
+                    break;
                 }
-                int defaultX = 0;
-                note->QueryIntAttribute("default-x", &defaultX);
-                outFile << noteType << " " << defaultX << " " << type->GetText()  << "\n";
+                Note* note = new Note(key, event.seconds);
+                notes.push_back(note);
             }
         }
     }
-    outFile.close();
+    std::sort(notes.begin(), notes.end(), [](Note* a, Note* b){
+            return a->getStartTime() < b->getStartTime();
+    });
 }
