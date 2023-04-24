@@ -2,22 +2,13 @@
 #define PIANO_HPP
 
 #include <algorithm>
-#include <atomic>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <map>
-#include <queue>
-#include <regex>
-#include <sstream>
 #include <string>
-#include <thread>
-#include <unordered_map>
 #include <vector>
-#include <sys/resource.h>
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
-#include <python3.10/Python.h>
 #include "Note.hpp"
 #include "midifile/include/MidiFile.h"
 #include "midifile/include/MidiEvent.h"

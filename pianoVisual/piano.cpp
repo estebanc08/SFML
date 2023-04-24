@@ -1,5 +1,4 @@
 #include "piano.hpp"
-sf::Clock musicTimer;
 
 Piano::Piano(){
     whiteKey.setSize(sf::Vector2f(WHITE_KEY_WIDTH, WHITE_KEY_HEIGHT));

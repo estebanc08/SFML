@@ -2,12 +2,17 @@
 
 int main(int argc, char const *argv[]){
     Piano piano;
+    std::string name = "mazeppa";
+    if(argc > 1)
+        name = std::string(argv[1]);
+    std::string midiName = "outputMidi/" + name + ".mid";
+    std::string wavName = "outputWav/" + name + ".wav";
 
-    piano.readMidi("outputMidi/norma.mid");
-    sf::RenderWindow window(sf::VideoMode(WHITE_KEY_WIDTH*56+2*SIDE_PADDING, WHITE_KEY_HEIGHT+VERTICAL_PADDING), "piano");
+    piano.readMidi(midiName);
+    sf::RenderWindow window(sf::VideoMode(WHITE_KEY_WIDTH*56+2*SIDE_PADDING, WHITE_KEY_HEIGHT+VERTICAL_PADDING+15.f), "piano");
     sf::Music music;
 
-    if (!music.openFromFile("outputWav/norma.wav")) {
+    if (!music.openFromFile(wavName)) {
         return 1;
     }
 
@@ -30,7 +35,7 @@ int main(int argc, char const *argv[]){
         if(exit)
             break;
         for(unsigned int i = 0; i < piano.whiteKeys.size(); i++){
-            piano.whiteKeys[i].setFillColor(sf::Color::White);
+            piano.whiteKeys[i].setFillColor(sf::Color(255,255,245));
             window.draw(piano.whiteKeys[i]);
         }
         for(int i = 1; i < 56; i++){
@@ -42,7 +47,7 @@ int main(int argc, char const *argv[]){
             window.draw(piano.blackKeys[i]);
         }
         while (clock.getElapsedTime().asSeconds() < piano.notes[i]->getStartTime())
-            sf::sleep(sf::milliseconds(1));
+            sf::sleep(sf::microseconds(100));
         do{
             int key = 0;
             if(piano.notes[i]->getKey()[1] != 'b'){
@@ -50,7 +55,10 @@ int main(int argc, char const *argv[]){
                     key = piano.notes[i]->getKey()[0] - 'A' + 7*(piano.notes[i]->getKey()[1]-'0');
                 else
                     key = piano.notes[i]->getKey()[0] - 'A' + 7*(piano.notes[i]->getKey()[1]-'0'-1);
-                piano.whiteKeys[key].setFillColor(sf::Color::Green);
+                if(key < piano.whiteKeys.size()/2)
+                    piano.whiteKeys[key].setFillColor(sf::Color(84, 148, 218)); //LHS piano
+                else
+                    piano.whiteKeys[key].setFillColor(sf::Color(124,252,0)); //RHS piano
                 window.draw(piano.whiteKeys[key]);
             }
             else{
@@ -69,7 +77,10 @@ int main(int argc, char const *argv[]){
                 else{
                     key = 5*(piano.notes[i]->getKey()[2]-'0'-1)+4;
                 }
-                piano.blackKeys[key].setFillColor(sf::Color::Red);
+                if(key < piano.blackKeys.size() / 2)
+                    piano.blackKeys[key].setFillColor(sf::Color::Blue);
+                else
+                    piano.blackKeys[key].setFillColor(sf::Color::Green);
                 window.draw(piano.blackKeys[key]);
             }
             i++;
