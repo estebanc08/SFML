@@ -1,7 +1,7 @@
 CXX= g++
 CXXFLAGS= -std=c++20 -g
-SFML_LIBS= -lsfml-graphics -lsfml-window -lsfml-system -lsfml-audio -I/usr/include/python3.10/ -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -lpython3.10
-MUSIC_LIB = -L./midifile/lib -lmidifile
+SFML_LIBS= -lsfml-audio -lsfml-graphics -lsfml-window -lsfml-system
+MUSIC_LIB = -I./midifile/include -L./midifile/lib -lmidifile 
 
 .PHONY: build
 build: piano.out run

@@ -7,17 +7,17 @@ Piano::Piano(){
     blackKey.setFillColor(sf::Color::Black);
 
     for(int i = 0; i < 56; i++){
-        whiteKey.setPosition(SIDE_PADDING + i * WHITE_KEY_WIDTH, VERTICAL_PADDING);
+        whiteKey.setPosition(sf::Vector2f(SIDE_PADDING + i * WHITE_KEY_WIDTH, VERTICAL_PADDING));
         whiteKeys.push_back(whiteKey);
     }
 
     //set first key, base other keys off this one
-    blackKey.setPosition(SIDE_PADDING + (2*WHITE_KEY_WIDTH-BLACK_KEY_WIDTH)/2.f, VERTICAL_PADDING);
+    blackKey.setPosition(sf::Vector2f(SIDE_PADDING + (2*WHITE_KEY_WIDTH-BLACK_KEY_WIDTH)/2.f, VERTICAL_PADDING));
     blackKeys.push_back(blackKey);
-    blackKey.setPosition(blackKey.getPosition().x + WHITE_KEY_WIDTH, VERTICAL_PADDING);
+    blackKey.setPosition(sf::Vector2f(blackKey.getPosition().x + WHITE_KEY_WIDTH, VERTICAL_PADDING));
 
     for(int i = 0; i < 53; i++){
-        blackKey.setPosition(blackKey.getPosition().x + WHITE_KEY_WIDTH, VERTICAL_PADDING);
+        blackKey.setPosition(sf::Vector2f(blackKey.getPosition().x + WHITE_KEY_WIDTH, VERTICAL_PADDING));
         if(i % 7 == 0 || i % 7 == 1 || i % 7 == 3 || i % 7 == 4 || i % 7 == 5)
             blackKeys.push_back(blackKey);
     }
