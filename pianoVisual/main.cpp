@@ -18,6 +18,9 @@ int main(int argc, char const *argv[]){
     sf::Event event;
     bool exit = false;
     bool paused = false;
+    std::vector<std::pair<double, bool>> whitePlaying(piano.whiteKeys.size(), {0, false});
+    std::vector<std::pair<double, bool>> blackPlaying(piano.blackKeys.size(), {0, false});
+
 
     while(window.isOpen()){
         //Play the next song
@@ -79,7 +82,8 @@ int main(int argc, char const *argv[]){
             while (clock.getElapsedTime().asSeconds() < piano.notes[i]->getStartTime())
                 sf::sleep(sf::microseconds(100));
             for(unsigned int i = 0; i < piano.whiteKeys.size(); i++){
-                piano.whiteKeys[i].setFillColor(sf::Color(255,255,245));
+                if(clock.getElapsedTime().asSeconds() > whitePlaying[i].first && whitePlaying[i].second || whitePlaying[i].second == false)
+                    piano.whiteKeys[i].setFillColor(sf::Color(255,255,245));
                 window.draw(piano.whiteKeys[i]);
             }
             for(int i = 1; i < 56; i++){
@@ -87,7 +91,8 @@ int main(int argc, char const *argv[]){
                 window.draw(line);
             }
             for(unsigned int i = 0; i < piano.blackKeys.size(); i++){
-                piano.blackKeys[i].setFillColor(sf::Color::Black);
+                if(clock.getElapsedTime().asSeconds() > blackPlaying[i].first && blackPlaying[i].second || blackPlaying[i].second == false)
+                    piano.blackKeys[i].setFillColor(sf::Color::Black);
                 window.draw(piano.blackKeys[i]);
             }
             window.display();
@@ -103,6 +108,8 @@ int main(int argc, char const *argv[]){
                         piano.whiteKeys[key].setFillColor(sf::Color(84, 148, 218)); //LHS piano
                     else
                         piano.whiteKeys[key].setFillColor(sf::Color(124,252,0)); //RHS piano
+                    double timeToEnd = piano.notes[i]->getStartTime() + piano.notes[i]->getDurationInSeconds();
+                    whitePlaying[key] = {timeToEnd, true};
                     window.draw(piano.whiteKeys[key]);
                 }
                 else{
@@ -125,6 +132,8 @@ int main(int argc, char const *argv[]){
                         piano.blackKeys[key].setFillColor(sf::Color::Blue);
                     else
                         piano.blackKeys[key].setFillColor(sf::Color::Green);
+                    double timeToEnd = piano.notes[i]->getStartTime() + piano.notes[i]->getDurationInSeconds();
+                    blackPlaying[key] = {timeToEnd, true};
                     window.draw(piano.blackKeys[key]);
                 }
                 i++;
@@ -144,7 +153,22 @@ int main(int argc, char const *argv[]){
             window.display();
         }
         while (music.getStatus() == sf::Music::Playing && !exit) {};
-        std::this_thread::sleep_for(std::chrono::seconds(1)); // add a short pause between songs
+
+        window.clear();
+        for(unsigned int i = 0; i < piano.whiteKeys.size(); i++){
+            piano.whiteKeys[i].setFillColor(sf::Color(255,255,245));
+            window.draw(piano.whiteKeys[i]);
+        }
+        for(int i = 1; i < 56; i++){
+            line.setPosition(sf::Vector2f(SIDE_PADDING + i * WHITE_KEY_WIDTH, VERTICAL_PADDING));
+            window.draw(line);
+        }
+        for(unsigned int i = 0; i < piano.blackKeys.size(); i++){
+            piano.blackKeys[i].setFillColor(sf::Color::Black);
+            window.draw(piano.blackKeys[i]);
+        }
+        window.display();
+
         currSong++;
         if(currSong >= (int)musicList.size()) //if reaches end of loop, go back to start
             currSong = 0;

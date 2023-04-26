@@ -33,6 +33,7 @@ void Piano::readMidi(const std::string path){
 
     midifile.doTimeAnalysis();
     midifile.linkNotePairs();
+
     for (int track_num = 0; track_num < midifile.getTrackCount(); track_num++) {
         smf::MidiEventList track = midifile[track_num];
         for (int i = 0; i < track.size(); i++) {
@@ -69,7 +70,7 @@ void Piano::readMidi(const std::string path){
                     case 11: key = "Ab" + std::to_string((pitch / 12 + 1));
                     break;
                 }
-                Note* note = new Note(key, event.seconds);
+                Note* note = new Note(key, event.seconds, midifile[track_num][i].getDurationInSeconds());
                 notes.push_back(note);
             }
         }

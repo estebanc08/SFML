@@ -9,9 +9,10 @@
 #include <mutex>
 #include <queue>
 #include <string>
+#include <thread>
 #include <vector>
-#include "SFML/include/SFML/Graphics.hpp"
-#include "SFML/include/SFML/Audio.hpp"
+#include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include "Note.hpp"
 #include "MidiFile.h"
 #include "MidiEvent.h"
@@ -24,19 +25,15 @@
 #define SIDE_PADDING 50
 #define VERTICAL_PADDING 40
 
-struct Piano{
-    float BPM = 100;
-    int currNote = 0;
+class Piano{
     bool musicDone = false;
     std::string currFileName;
     sf::RectangleShape whiteKey, blackKey;
-    std::vector<sf::RectangleShape> whiteKeys;
-    std::vector<sf::RectangleShape> blackKeys;
-    unsigned int measure = 0;
     
     public:
+    std::vector<sf::RectangleShape> whiteKeys;
+    std::vector<sf::RectangleShape> blackKeys;
     std::map<unsigned int, float> tempos;
-    float getBPM() {return BPM;};
     std::vector<Note*> notes;
     Piano();
     void readMidi(const std::string path);
