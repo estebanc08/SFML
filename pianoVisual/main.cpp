@@ -130,7 +130,7 @@ int main(int argc, char const *argv[]){
                 i++;
             }
             while(i < piano.notes.size() && piano.notes[i]->getStartTime() == piano.notes[i-1]->getStartTime());
-                
+            i--;
             for(unsigned int i = 0; i < piano.whiteKeys.size(); i++){
                 window.draw(piano.whiteKeys[i]);
             }
@@ -144,13 +144,12 @@ int main(int argc, char const *argv[]){
             window.display();
         }
         while (music.getStatus() == sf::Music::Playing && !exit) {};
+        std::this_thread::sleep_for(std::chrono::seconds(1)); // add a short pause between songs
         currSong++;
-        if(currSong >= (int)musicList.size()) //if reaces end of loop, go back to start
+        if(currSong >= (int)musicList.size()) //if reaches end of loop, go back to start
             currSong = 0;
         else if(currSong < 0) //if rewinded on first song, go to end
             currSong = (int)musicList.size() - 1;
         exit = false;
     }
-
-
 }
