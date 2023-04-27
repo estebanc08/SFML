@@ -1,9 +1,9 @@
 #include "piano.hpp"
 
 
-inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::Clock& clock, std::vector<std::pair<double, bool>>& whitePlaying, std::vector<std::pair<double, bool>>& blackPlaying){
+inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::Clock& clock, std::vector<std::pair<double, bool>>& whitePlaying, std::vector<std::pair<double, bool>>& blackPlaying, sf::Text& songPlaying){
     window.clear();
-
+    window.draw(songPlaying);
     sf::RectangleShape redLine(sf::Vector2f(WHITE_KEY_WIDTH*56, 1));
     redLine.setPosition(SIDE_PADDING, VERTICAL_PADDING);
     redLine.setFillColor(sf::Color::Red);
@@ -96,7 +96,6 @@ int main(int argc, char const *argv[]){
         sf::Clock clock;
         for (unsigned int i = 0; i < piano.notes.size(); i++)
         {
-            window.clear();
             window.draw(songPlaying);
             while(window.pollEvent(event)){
                 if(event.type == sf::Event::Closed){
@@ -127,7 +126,7 @@ int main(int argc, char const *argv[]){
             while (clock.getElapsedTime().asSeconds() < piano.notes[i]->getStartTime())
                 sf::sleep(sf::microseconds(100));
             
-            drawNotes(window, piano, clock, whitePlaying, blackPlaying);
+            drawNotes(window, piano, clock, whitePlaying, blackPlaying, songPlaying);
 
             sf::sleep(sf::microseconds(150));
             do{
@@ -174,7 +173,7 @@ int main(int argc, char const *argv[]){
             while(i < piano.notes.size() && piano.notes[i]->getStartTime() == piano.notes[i-1]->getStartTime());
             i--;
 
-           drawNotes(window, piano, clock, whitePlaying, blackPlaying);
+           drawNotes(window, piano, clock, whitePlaying, blackPlaying, songPlaying);
 
         }
 
