@@ -35,17 +35,43 @@ void Piano::readMidi(const std::string path){
         return;
     }
 
+    // std::pair<int, int> trackinst;
+    // std::set<std::pair<int, int>> iset;
+    // for (int i=0; i<midifile.getTrackCount(); i++) {
+    //     for (int j=0; j<midifile[i].getEventCount(); j++) {
+    //         if (midifile[i][j].isTimbre()) {
+    //             trackinst.first = i;
+    //             trackinst.second = midifile[i][j].getP1();
+    //             iset.insert(trackinst);
+    //         }
+    //     }
+    // }
+    // for (auto it : iset)
+    //     std::cout << "Track:" << it.first << "\tInstrument:" << it.second << std::endl;
+
+
     midifile.doTimeAnalysis();
     midifile.linkNotePairs();
-
+    bool piano = false;
     for (int track_num = 0; track_num < midifile.getTrackCount(); track_num++) {
         const smf::MidiEventList& track = midifile[track_num];
         for (int i = 0; i < track.size(); i++) {
             const smf::MidiEvent& event = track[i];
-           if (event.isNoteOn()) {
+            if(event.isTimbre()){
+                int instrument = event.getP1();
+                if(instrument >= 0 && instrument <= 4){
+                    piano = true;
+                }
+                else{
+                    piano = false;
+                }
+            }
+           if (event.isNoteOn() && piano) {
                 int pitch = event.getP1();
                 int velocity = event.getP2();
                 pitch -= 21;
+                if(pitch < 0 || pitch >= whiteKeys.size() + blackKeys.size() - 2)
+                    continue;
                 int noteNum;
                 std::string key;
                 switch (pitch % 12) {

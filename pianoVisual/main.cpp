@@ -15,18 +15,9 @@ inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::Clock& clock, 
             window.draw(piano.whiteKeys[i]);
         }
         else{
-            // sf::ConvexShape shadowShape;
-            // shadowShape.setPointCount(3);
-            // shadowShape.setPoint(0, sf::Vector2f(posX+ BLACK_KEY_WIDTH /2, VERTICAL_PADDING));
-            // shadowShape.setPoint(1, sf::Vector2f(posX+BLACK_KEY_WIDTH /2, VERTICAL_PADDING+BLACK_KEY_HEIGHT));
-            // shadowShape.setPoint(2, sf::Vector2f(posX+BLACK_KEY_WIDTH /2+5, VERTICAL_PADDING+BLACK_KEY_HEIGHT-6));
-            // shadowShape.setFillColor(sf::Color(0, 0, 0, 128));
-
             sf::RectangleShape pressed(piano.whiteKeys[i]);
             pressed.setSize(sf::Vector2f(pressed.getSize().x, pressed.getSize().y + 2.5));
             window.draw(pressed);
-            // if(i % 7 != 2 && i % 7 != 5) //dont want shadow on c or f
-            //     window.draw(shadowShape);
         }
     }
 
@@ -34,8 +25,6 @@ inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::Clock& clock, 
     for(unsigned int i = 0; i < piano.blackKeys.size(); i++){
         if(clock.getElapsedTime().asSeconds() >= blackPlaying[i].first && blackPlaying[i].second || blackPlaying[i].second == false)
             piano.blackKeys[i].setFillColor(sf::Color::Black);
-        piano.blackKeys[i].setOutlineThickness(1.f);\
-        piano.blackKeys[i].setOutlineColor(sf::Color::Black);
         window.draw(piano.blackKeys[i]);
     }
     window.display();
@@ -94,7 +83,7 @@ int main(int argc, char const *argv[]){
         }
         music.play();
         sf::Clock clock;
-        for (unsigned int i = 0; i < piano.notes.size(); i++)
+        for (int i = 0; i < (int)piano.notes.size(); i++)
         {
             window.draw(songPlaying);
             while(window.pollEvent(event)){
@@ -123,12 +112,16 @@ int main(int argc, char const *argv[]){
             if(exit)
                 break;
             
-            while (clock.getElapsedTime().asSeconds() < piano.notes[i]->getStartTime())
-                sf::sleep(sf::microseconds(100));
-            
             drawNotes(window, piano, clock, whitePlaying, blackPlaying, songPlaying);
 
+
+            if (clock.getElapsedTime().asSeconds() < piano.notes[i]->getStartTime()){
+                i--;
+                continue;
+            }
+            
             sf::sleep(sf::microseconds(150));
+
             do{
                 int key = 0;
                 if(piano.notes[i]->getKey()[1] != 'b'){

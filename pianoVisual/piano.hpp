@@ -8,6 +8,7 @@
 #include <iostream>
 #include <queue>
 #include <string>
+#include <set>
 #include <thread>
 #include <vector>
 #include <SFML/Graphics.hpp>
