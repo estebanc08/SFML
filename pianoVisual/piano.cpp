@@ -8,6 +8,8 @@ Piano::Piano(){
 
     for(int i = 0; i < 56; i++){
         whiteKey.setPosition(sf::Vector2f(SIDE_PADDING + i * WHITE_KEY_WIDTH, VERTICAL_PADDING));
+        whiteKey.setOutlineThickness(1.f);
+        whiteKey.setOutlineColor(sf::Color::Black);
         whiteKeys.push_back(whiteKey);
     }
 
@@ -18,6 +20,8 @@ Piano::Piano(){
 
     for(int i = 0; i < 53; i++){
         blackKey.setPosition(sf::Vector2f(blackKey.getPosition().x + WHITE_KEY_WIDTH, VERTICAL_PADDING));
+        blackKey.setOutlineThickness(1.f);
+        blackKey.setOutlineColor(sf::Color::Black);
         if(i % 7 == 0 || i % 7 == 1 || i % 7 == 3 || i % 7 == 4 || i % 7 == 5)
             blackKeys.push_back(blackKey);
     }
@@ -35,7 +39,7 @@ void Piano::readMidi(const std::string path){
     midifile.linkNotePairs();
 
     for (int track_num = 0; track_num < midifile.getTrackCount(); track_num++) {
-        smf::MidiEventList track = midifile[track_num];
+        const smf::MidiEventList& track = midifile[track_num];
         for (int i = 0; i < track.size(); i++) {
             const smf::MidiEvent& event = track[i];
            if (event.isNoteOn()) {
@@ -70,7 +74,8 @@ void Piano::readMidi(const std::string path){
                     case 11: key = "Ab" + std::to_string((pitch / 12 + 1));
                     break;
                 }
-                Note* note = new Note(key, event.seconds, midifile[track_num][i].getDurationInSeconds());
+
+                Note* note = new Note(key, event.seconds, event.getDurationInSeconds());
                 notes.push_back(note);
             }
         }

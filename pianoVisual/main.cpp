@@ -1,5 +1,47 @@
 #include "piano.hpp"
 
+
+inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::Clock& clock, std::vector<std::pair<double, bool>>& whitePlaying, std::vector<std::pair<double, bool>>& blackPlaying){
+    window.clear();
+
+    sf::RectangleShape redLine(sf::Vector2f(WHITE_KEY_WIDTH*56, 1));
+    redLine.setPosition(SIDE_PADDING, VERTICAL_PADDING);
+    redLine.setFillColor(sf::Color::Red);
+
+    for(unsigned int i = 0; i < piano.whiteKeys.size(); i++){
+        float posX = piano.whiteKeys[i].getPosition().x;
+        if(clock.getElapsedTime().asSeconds() >= whitePlaying[i].first && whitePlaying[i].second || whitePlaying[i].second == false){
+            piano.whiteKeys[i].setFillColor(sf::Color(255,255,245));
+            window.draw(piano.whiteKeys[i]);
+        }
+        else{
+            // sf::ConvexShape shadowShape;
+            // shadowShape.setPointCount(3);
+            // shadowShape.setPoint(0, sf::Vector2f(posX+ BLACK_KEY_WIDTH /2, VERTICAL_PADDING));
+            // shadowShape.setPoint(1, sf::Vector2f(posX+BLACK_KEY_WIDTH /2, VERTICAL_PADDING+BLACK_KEY_HEIGHT));
+            // shadowShape.setPoint(2, sf::Vector2f(posX+BLACK_KEY_WIDTH /2+5, VERTICAL_PADDING+BLACK_KEY_HEIGHT-6));
+            // shadowShape.setFillColor(sf::Color(0, 0, 0, 128));
+
+            sf::RectangleShape pressed(piano.whiteKeys[i]);
+            pressed.setSize(sf::Vector2f(pressed.getSize().x, pressed.getSize().y + 2.5));
+            window.draw(pressed);
+            // if(i % 7 != 2 && i % 7 != 5) //dont want shadow on c or f
+            //     window.draw(shadowShape);
+        }
+    }
+
+    window.draw(redLine);
+    for(unsigned int i = 0; i < piano.blackKeys.size(); i++){
+        if(clock.getElapsedTime().asSeconds() >= blackPlaying[i].first && blackPlaying[i].second || blackPlaying[i].second == false)
+            piano.blackKeys[i].setFillColor(sf::Color::Black);
+        piano.blackKeys[i].setOutlineThickness(1.f);\
+        piano.blackKeys[i].setOutlineColor(sf::Color::Black);
+        window.draw(piano.blackKeys[i]);
+    }
+    window.display();
+}
+
+
 int main(int argc, char const *argv[]){
     Piano piano;
 
@@ -13,21 +55,21 @@ int main(int argc, char const *argv[]){
 
     sf::RenderWindow window(sf::VideoMode(WHITE_KEY_WIDTH*56+2*SIDE_PADDING, WHITE_KEY_HEIGHT+VERTICAL_PADDING+15.f), "piano");
 
-    sf::RectangleShape line(sf::Vector2f(1, WHITE_KEY_HEIGHT));
-    line.setFillColor(sf::Color::Black);
     sf::Event event;
     bool exit = false;
     bool paused = false;
     std::vector<std::pair<double, bool>> whitePlaying(piano.whiteKeys.size(), {0, false});
     std::vector<std::pair<double, bool>> blackPlaying(piano.blackKeys.size(), {0, false});
+    sf::Font font;
+    font.loadFromFile("arial.ttf");
+    sf::Text songPlaying("", font, 20);
+    songPlaying.setPosition(sf::Vector2f(window.getSize().x / 2, 10));
 
 
     while(window.isOpen()){
         //Play the next song
         std::ofstream outFile("songList.txt", std::ofstream::out | std::ofstream::trunc);
-        std::mutex lockFile;
 
-        std::unique_lock<std::mutex> lock(lockFile);
         if(outFile.is_open()){
             int temp = currSong;
             for(unsigned int i = 0; i < musicList.size(); i++, temp++){
@@ -41,7 +83,9 @@ int main(int argc, char const *argv[]){
 
         std::string midiName = "outputMidi/" + musicList[currSong] + ".mid";
         std::string wavName = "outputWav/" + musicList[currSong] + ".wav";
-        std::cout << "Now Playing: " << musicList[currSong] << "\n";
+        std::string message =  "Now Playing: " + musicList[currSong];
+        songPlaying.setString(message);
+        songPlaying.setPosition(sf::Vector2f((window.getSize().x -songPlaying.getGlobalBounds().width) / 2, 10));
         piano.notes.clear();
         piano.readMidi(midiName);
         sf::Music music;
@@ -53,6 +97,7 @@ int main(int argc, char const *argv[]){
         for (unsigned int i = 0; i < piano.notes.size(); i++)
         {
             window.clear();
+            window.draw(songPlaying);
             while(window.pollEvent(event)){
                 if(event.type == sf::Event::Closed){
                     window.close();
@@ -81,22 +126,10 @@ int main(int argc, char const *argv[]){
             
             while (clock.getElapsedTime().asSeconds() < piano.notes[i]->getStartTime())
                 sf::sleep(sf::microseconds(100));
-            for(unsigned int i = 0; i < piano.whiteKeys.size(); i++){
-                if(clock.getElapsedTime().asSeconds() > whitePlaying[i].first && whitePlaying[i].second || whitePlaying[i].second == false)
-                    piano.whiteKeys[i].setFillColor(sf::Color(255,255,245));
-                window.draw(piano.whiteKeys[i]);
-            }
-            for(int i = 1; i < 56; i++){
-                line.setPosition(sf::Vector2f(SIDE_PADDING + i * WHITE_KEY_WIDTH, VERTICAL_PADDING));
-                window.draw(line);
-            }
-            for(unsigned int i = 0; i < piano.blackKeys.size(); i++){
-                if(clock.getElapsedTime().asSeconds() > blackPlaying[i].first && blackPlaying[i].second || blackPlaying[i].second == false)
-                    piano.blackKeys[i].setFillColor(sf::Color::Black);
-                window.draw(piano.blackKeys[i]);
-            }
-            window.display();
-            sf::sleep(sf::microseconds(400));
+            
+            drawNotes(window, piano, clock, whitePlaying, blackPlaying);
+
+            sf::sleep(sf::microseconds(150));
             do{
                 int key = 0;
                 if(piano.notes[i]->getKey()[1] != 'b'){
@@ -129,9 +162,9 @@ int main(int argc, char const *argv[]){
                         key = 5*(piano.notes[i]->getKey()[2]-'0'-1)+4;
                     }
                     if(key < piano.blackKeys.size() / 2)
-                        piano.blackKeys[key].setFillColor(sf::Color::Blue);
+                        piano.blackKeys[key].setFillColor(sf::Color(84, 148, 218));
                     else
-                        piano.blackKeys[key].setFillColor(sf::Color::Green);
+                        piano.blackKeys[key].setFillColor(sf::Color(124,252,0));
                     double timeToEnd = piano.notes[i]->getStartTime() + piano.notes[i]->getDurationInSeconds();
                     blackPlaying[key] = {timeToEnd, true};
                     window.draw(piano.blackKeys[key]);
@@ -140,34 +173,12 @@ int main(int argc, char const *argv[]){
             }
             while(i < piano.notes.size() && piano.notes[i]->getStartTime() == piano.notes[i-1]->getStartTime());
             i--;
-            for(unsigned int i = 0; i < piano.whiteKeys.size(); i++){
-                window.draw(piano.whiteKeys[i]);
-            }
-            for(int i = 1; i < 56; i++){
-                line.setPosition(sf::Vector2f(SIDE_PADDING + i * WHITE_KEY_WIDTH, VERTICAL_PADDING));
-                window.draw(line);
-            }
-            for(unsigned int i = 0; i < piano.blackKeys.size(); i++){
-                window.draw(piano.blackKeys[i]);
-            }
-            window.display();
-        }
-        while (music.getStatus() == sf::Music::Playing && !exit) {};
 
-        window.clear();
-        for(unsigned int i = 0; i < piano.whiteKeys.size(); i++){
-            piano.whiteKeys[i].setFillColor(sf::Color(255,255,245));
-            window.draw(piano.whiteKeys[i]);
+           drawNotes(window, piano, clock, whitePlaying, blackPlaying);
+
         }
-        for(int i = 1; i < 56; i++){
-            line.setPosition(sf::Vector2f(SIDE_PADDING + i * WHITE_KEY_WIDTH, VERTICAL_PADDING));
-            window.draw(line);
-        }
-        for(unsigned int i = 0; i < piano.blackKeys.size(); i++){
-            piano.blackKeys[i].setFillColor(sf::Color::Black);
-            window.draw(piano.blackKeys[i]);
-        }
-        window.display();
+
+        while (music.getStatus() == sf::Music::Playing && !exit) {};
 
         currSong++;
         if(currSong >= (int)musicList.size()) //if reaches end of loop, go back to start
@@ -175,5 +186,7 @@ int main(int argc, char const *argv[]){
         else if(currSong < 0) //if rewinded on first song, go to end
             currSong = (int)musicList.size() - 1;
         exit = false;
+        whitePlaying = std::vector<std::pair<double, bool>>(piano.whiteKeys.size(), {0, false});
+        blackPlaying = std::vector<std::pair<double, bool>>(piano.blackKeys.size(), {0, false});
     }
 }
