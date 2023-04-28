@@ -5,10 +5,6 @@
 #include <SFML/Audio.hpp>
 
  class Note{
-    protected:
-        std::string key;
-        double startTime;
-        double durationInSeconds;
     public:
         Note(std::string _key, double startTime) {
             this->key = _key;
@@ -31,6 +27,11 @@
         double getDurationInSeconds(){
             return durationInSeconds;
         }
+        
+    private:
+        std::string key;
+        double startTime;
+        double durationInSeconds;
     };
 
 #endif

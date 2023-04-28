@@ -13,6 +13,9 @@ do
     filename=$(basename -- "$file")
     extension="${filename##*.}"
     filename="${filename%.*}"
+    if [ ! -f "outputWav/$filename.wav" ]; then
+        fluidsynth -F "./outputWav/${filename}.wav" soundfont.sf2 "./outputMidi/${filename}.mid"
+    fi
     echo "$filename" >> songList.txt
 done
 
