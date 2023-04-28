@@ -35,21 +35,6 @@ void Piano::readMidi(const std::string path){
         return;
     }
 
-    // std::pair<int, int> trackinst;
-    // std::set<std::pair<int, int>> iset;
-    // for (int i=0; i<midifile.getTrackCount(); i++) {
-    //     for (int j=0; j<midifile[i].getEventCount(); j++) {
-    //         if (midifile[i][j].isTimbre()) {
-    //             trackinst.first = i;
-    //             trackinst.second = midifile[i][j].getP1();
-    //             iset.insert(trackinst);
-    //         }
-    //     }
-    // }
-    // for (auto it : iset)
-    //     std::cout << "Track:" << it.first << "\tInstrument:" << it.second << std::endl;
-
-
     midifile.doTimeAnalysis();
     midifile.linkNotePairs();
     bool piano = false;
