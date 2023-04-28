@@ -1,41 +1,53 @@
-mazeppa
-mephisto
-norma
-ocean
-Op10No11
-Op10No12
-Op10No1
-Op10No2
-Op10No3
-Op10No4
-Op10No5
-Op10No6
-Op10No7
-Op10No8
-Op10No9
-Op25No10
-Op25No11
-Op25No12
-Op25No1
-Op25No2
-Op25No3
-Op25No4
-Op25No5
-Op25No6
-Op25No7
-Op25No8
-Op25No9
-PreludeNo24
-scherzoNo2
-transcendentalNo10
-unSospiro
-z_castleInSky
-balladeNo1
-balladeNo2
-balladeNo3
-balladeNo4
-chasseNeige
-chasseNiege
-laCampanella
-liebestraum
-liebestraumNo3
+Ballade No. 1
+Ballade No. 2
+Ballade No. 3
+Ballade No. 4
+Etude De Paganini No. 6
+Fantaisie Impromptu
+La Campanella
+Liebestraum No. 3
+Mephisto Waltz
+Moonlight Sonata 1st Movement
+Op. 10 No. 01
+Op. 10 No. 02
+Op. 10 No. 03
+Op. 10 No. 04
+Op. 10 No. 05
+Op. 10 No. 06
+Op. 10 No. 07
+Op. 10 No. 08
+Op. 10 No. 09
+Op. 10 No. 10
+Op. 10 No. 11
+Op. 10 No. 12
+Op. 16 No. 04
+Op. 25 No. 01
+Op. 25 No. 02
+Op. 25 No. 03
+Op. 25 No. 04
+Op. 25 No. 05
+Op. 25 No. 06
+Op. 25 No. 07
+Op. 25 No. 08
+Op. 25 No. 09
+Op. 25 No. 10
+Op. 25 No. 11
+Op. 25 No. 12
+Op. 28 No. 24
+Op. 48. No. 1
+Op. 8 No. 12
+Rachmaninoff Piano Concerto No. 2 1st Movement
+Rachmaninoff Piano Concerto No. 2 2nd Movement
+Rachmaninoff Piano Concerto No. 2 3rd Movement
+Rachmaninoff Piano Concerto No. 3 1st Movement
+Rachmaninoff Piano Concerto No. 3 2nd Movement
+Rachmaninoff Piano Concerto No. 3 3rd Movement
+Reminiscences de Norma
+Scherzo No. 2
+Sonata In B Minor
+Transcendental Etude No. 04 'Mazeppa'
+Transcendental Etude No. 05 'Feux Follets'
+Transcendental Etude No. 08 'Wilde Jagd'
+Transcendental Etude No. 10 'Appassionata'
+Transcendental Etude No. 12 'Chasse Neige'
+Un Sospiro
