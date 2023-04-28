@@ -8,6 +8,15 @@ inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::Clock& clock, 
     redLine.setPosition(SIDE_PADDING, VERTICAL_PADDING);
     redLine.setFillColor(sf::Color::Red);
 
+    sf::Font font;
+    font.loadFromFile("arial.ttf");
+    sf::Text buttons("Press F5 to go back", font, 20);
+    buttons.setPosition(10,10);
+    window.draw(buttons);
+    buttons.setString("Press F7 to skip");
+    buttons.setPosition(window.getSize().x - buttons.getGlobalBounds().width - 10, 10);
+    window.draw(buttons);
+    
     for(unsigned int i = 0; i < piano.whiteKeys.size(); i++){
         float posX = piano.whiteKeys[i].getPosition().x;
         if(clock.getElapsedTime().asSeconds() >= whitePlaying[i]){
