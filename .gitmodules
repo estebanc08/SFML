@@ -1,3 +1,0 @@
-[submodule "pianoVisual/outputMidi/pianoVisual/midifile"]
-	path = pianoVisual/outputMidi/pianoVisual/midifile
-	url = https://github.com/craigsapp/midifile.git
