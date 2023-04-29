@@ -1,11 +1,109 @@
 #include "piano.hpp"
 
 
-inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::Clock& clock, std::vector<double>& whitePlaying, std::vector<double>& blackPlaying, sf::Text& songPlaying){
+inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::Clock& clock, std::vector<double>& whitePlaying, std::vector<double>& blackPlaying, sf::Text& songPlaying, unsigned int index){
     window.clear();
+
+    
+    double currTime = clock.getElapsedTime().asSeconds();
+    double timeToShow = currTime + 2;
+    float screenPercent = (window.getSize().y - piano.whiteKeys[0].getGlobalBounds().height) / 2.f;
+     //falling note going into playing note animation
+    for(unsigned int i = 0; i < whitePlaying.size(); i++){
+        if(whitePlaying[i] > currTime){
+            float noteHeight = (whitePlaying[i] - currTime) * screenPercent;
+            float width = piano.whiteKeys[0].getGlobalBounds().width - 6;
+            sf::RectangleShape note(sf::Vector2f(width, noteHeight));
+            float x = piano.whiteKeys[i].getPosition().x + 3;
+            float y = window.getSize().y - piano.whiteKeys[0].getGlobalBounds().height  - (whitePlaying[i] - currTime) * screenPercent - 10;
+            if(i < piano.whiteKeys.size()/2)
+                note.setFillColor(sf::Color(84, 148, 218)); //LHS piano
+            else
+                note.setFillColor(sf::Color(124,252,0)); //RHS piano
+            note.setOutlineThickness(1.f);
+            note.setOutlineColor(sf::Color::Black);
+            note.setPosition(x, y);
+            window.draw(note);
+        }
+    }
+
+    for(unsigned int i = 0; i < blackPlaying.size(); i++){
+        if(blackPlaying[i] > currTime){
+            float noteHeight = (blackPlaying[i] - currTime) * screenPercent;
+            float width = piano.blackKeys[0].getGlobalBounds().width;
+            sf::RectangleShape note(sf::Vector2f(width, noteHeight));
+            float x = piano.blackKeys[i].getPosition().x;
+            float y = window.getSize().y - piano.whiteKeys[0].getGlobalBounds().height  - (blackPlaying[i] - currTime) * screenPercent - 10;
+             if(i < piano.blackKeys.size()/2)
+                note.setFillColor(sf::Color(59, 107, 153)); //LHS piano
+            else
+                note.setFillColor(sf::Color(89,176,0)); //RHS piano
+            note.setOutlineThickness(1.f);
+            note.setOutlineColor(sf::Color::Black);
+            note.setPosition(x, y);
+            window.draw(note);
+        }
+    }
+    //plays next notes not playing
+    for(; index < piano.notes.size(); index++){
+        if(piano.notes[index]->getStartTime() < timeToShow){
+            int key = 0;
+            bool whiteKey = true;
+            sf::RectangleShape note;
+            float width = 0;
+            if(piano.notes[index]->getKey()[1] != 'b'){
+
+                if(piano.notes[index]->getKey()[0] == 'A' || piano.notes[index]->getKey()[0] == 'B')
+                    key = piano.notes[index]->getKey()[0] - 'A' + 7*(piano.notes[index]->getKey()[1]-'0');
+                else
+                    key = piano.notes[index]->getKey()[0] - 'A' + 7*(piano.notes[index]->getKey()[1]-'0'-1);
+                width = piano.whiteKeys[0].getGlobalBounds().width - 6;
+                if(key < piano.whiteKeys.size()/2)
+                    note.setFillColor(sf::Color(84, 148, 218)); //LHS piano
+                else
+                    note.setFillColor(sf::Color(124,252,0)); //RHS piano
+            }
+            else{
+                if(piano.notes[index]->getKey()[0] == 'B'){
+                    key = 5*(piano.notes[index]->getKey()[2]- '0');
+                }
+                else if(piano.notes[index]->getKey()[0] == 'D'){
+                    key = 5*(piano.notes[index]->getKey()[2]- '0' -1) + 1;
+                }
+                else if(piano.notes[index]->getKey()[0] == 'E'){
+                    key = 5*(piano.notes[index]->getKey()[2]- '0' -1) + 2;
+                }
+                else if(piano.notes[index]->getKey()[0] == 'G'){
+                    key = 5*(piano.notes[index]->getKey()[2]- '0' -1) + 3;
+                }
+                else{
+                    key = 5*(piano.notes[index]->getKey()[2]-'0'-1)+4;
+                }
+                if(key < piano.blackKeys.size()/2)
+                    note.setFillColor(sf::Color(59, 107, 153)); //LHS piano
+                else
+                    note.setFillColor(sf::Color(89,176,0)); //RHS piano
+                whiteKey = false;
+                width = piano.blackKeys[0].getGlobalBounds().width;
+            }
+            float noteHeight = piano.notes[index]->getStartTime() - currTime + piano.notes[index]->getDurationInSeconds() * screenPercent;
+            note.setSize(sf::Vector2f(width, noteHeight));
+            float x = whiteKey ? piano.whiteKeys[key].getPosition().x + 3: piano.blackKeys[key].getPosition().x;
+            float y = window.getSize().y - piano.whiteKeys[0].getGlobalBounds().height  - (piano.notes[index]->getStartTime() - currTime) * screenPercent - noteHeight; //without the +10, does a weird drop when note being played
+            note.setOutlineThickness(1.f);
+            note.setOutlineColor(sf::Color::Black);
+            note.setPosition(x, y);
+            window.draw(note);
+        }
+        else
+            break;
+    }
+
+
     window.draw(songPlaying);
-    sf::RectangleShape redLine(sf::Vector2f(WHITE_KEY_WIDTH*56, 1));
-    redLine.setPosition(SIDE_PADDING, VERTICAL_PADDING);
+
+    sf::RectangleShape redLine(sf::Vector2f(window.getSize().x - 2 * SIDE_PADDING,  1));
+    redLine.setPosition(SIDE_PADDING, window.getSize().y - piano.whiteKeys[0].getGlobalBounds().height  - 9);
     redLine.setFillColor(sf::Color::Red);
 
     sf::Font font;
@@ -36,13 +134,16 @@ inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::Clock& clock, 
             piano.blackKeys[i].setFillColor(sf::Color::Black);
         window.draw(piano.blackKeys[i]);
     }
+
     window.display();
 
 }
 
 
 int main(int argc, char const *argv[]){
-    Piano piano;
+    sf::VideoMode videoMode = sf::VideoMode::getDesktopMode();
+    sf::RenderWindow window(videoMode, "piano");
+    Piano piano(window.getSize().x, window.getSize().y);
 
     //start the song from current position
     std::ifstream musicIn("songList.txt");
@@ -52,8 +153,6 @@ int main(int argc, char const *argv[]){
     while(getline(musicIn, name))
         musicList.push_back(name);
     int currSong = 0;
-
-    sf::RenderWindow window(sf::VideoMode(WHITE_KEY_WIDTH*56+2*SIDE_PADDING, WHITE_KEY_HEIGHT+VERTICAL_PADDING+15.f), "piano");
 
     sf::Event event;
     bool exit = false;
@@ -129,14 +228,12 @@ int main(int argc, char const *argv[]){
             if(exit)
                 break;
             
-            drawNotes(window, piano, clock, whitePlaying, blackPlaying, songPlaying);
-
+            drawNotes(window, piano, clock, whitePlaying, blackPlaying, songPlaying, i);
 
             if (clock.getElapsedTime().asSeconds() < piano.notes[i]->getStartTime()){
                 i--; //dont play note yet, go back to current note and check again
                 continue;
             }
-
             do{
                 int key = 0;
                 if(piano.notes[i]->getKey()[1] != 'b'){
@@ -172,9 +269,9 @@ int main(int argc, char const *argv[]){
                         key = 5*(piano.notes[i]->getKey()[2]-'0'-1)+4;
                     }
                     if(key < piano.blackKeys.size() / 2)
-                        piano.blackKeys[key].setFillColor(sf::Color(84, 148, 218));
+                        piano.blackKeys[key].setFillColor(sf::Color(59, 107, 153));
                     else
-                        piano.blackKeys[key].setFillColor(sf::Color(124,252,0));
+                        piano.blackKeys[key].setFillColor(sf::Color(89,176,0));
                     double timeToEnd = piano.notes[i]->getStartTime() + piano.notes[i]->getDurationInSeconds() - 2.f/100;
                     if(piano.notes[i]->getDurationInSeconds() < 20.f/1000){
                         timeToEnd = piano.notes[i]->getStartTime() + 20.f/1000;
@@ -188,10 +285,13 @@ int main(int argc, char const *argv[]){
             while(i < piano.notes.size() && piano.notes[i]->getStartTime() == piano.notes[i-1]->getStartTime());
             i--; //for loop will increment one too many without this and skip notes
             
-            drawNotes(window, piano, clock, whitePlaying, blackPlaying, songPlaying); //need this to play the last notes or else will exit loop
+            drawNotes(window, piano, clock, whitePlaying, blackPlaying, songPlaying, i); //need this to play the last notes or else will exit loop
         }
 
-        while (music.getStatus() == sf::Music::Playing && !exit) {};
+        while (music.getStatus() == sf::Music::Playing && !exit) {
+            drawNotes(window, piano, clock, whitePlaying, blackPlaying, songPlaying, piano.notes.size());
+            sf::sleep(sf::microseconds(100));
+        };
 
         currSong++;
         if(currSong >= (int)musicList.size()) //if reaches end of loop, go back to start

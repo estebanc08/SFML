@@ -35,6 +35,7 @@ class Piano{
     std::map<unsigned int, float> tempos;
     std::vector<Note*> notes;
     Piano();
+    Piano(unsigned int width, unsigned int height);
     void readMidi(const std::string path);
 
 };

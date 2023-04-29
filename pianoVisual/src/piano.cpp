@@ -25,6 +25,38 @@ Piano::Piano(){
         if(i % 7 == 0 || i % 7 == 1 || i % 7 == 3 || i % 7 == 4 || i % 7 == 5)
             blackKeys.push_back(blackKey);
     }
+
+}
+
+Piano::Piano(unsigned int width, unsigned int height){
+    float white_width = (width-SIDE_PADDING*2)/56.f;
+    float black_width = white_width * BLACK_KEY_WIDTH/WHITE_KEY_WIDTH;
+    whiteKey.setSize(sf::Vector2f(white_width, (width-SIDE_PADDING*2)/56.f * WHITE_KEY_HEIGHT/WHITE_KEY_WIDTH));
+    blackKey.setSize(sf::Vector2f(black_width, whiteKey.getGlobalBounds().height * BLACK_KEY_HEIGHT/WHITE_KEY_HEIGHT));
+    whiteKey.setFillColor(sf::Color::White);
+    blackKey.setFillColor(sf::Color::Black);
+
+    float vertical_padding = height - whiteKey.getGlobalBounds().height - 10;
+    for(unsigned int i = 0; i < 56; i++){
+        whiteKey.setPosition(sf::Vector2f(SIDE_PADDING + i * white_width, vertical_padding));
+        whiteKey.setOutlineThickness(1.f);
+        whiteKey.setOutlineColor(sf::Color::Black);
+        whiteKeys.push_back(whiteKey);
+    }
+
+    //set first key, base other keys off this one
+    blackKey.setPosition(sf::Vector2f(SIDE_PADDING + (2* white_width - black_width)/2.f, vertical_padding));
+    blackKeys.push_back(blackKey);
+    blackKey.setPosition(sf::Vector2f(blackKey.getPosition().x + white_width, vertical_padding));
+
+    for(int i = 0; i < 53; i++){
+        blackKey.setPosition(sf::Vector2f(blackKey.getPosition().x + white_width, vertical_padding));
+        blackKey.setOutlineThickness(1.f);
+        blackKey.setOutlineColor(sf::Color::Black);
+        if(i % 7 == 0 || i % 7 == 1 || i % 7 == 3 || i % 7 == 4 || i % 7 == 5)
+            blackKeys.push_back(blackKey);
+    }
+
 }
 
 
