@@ -16,7 +16,6 @@ inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::Clock& clock, 
     buttons.setString("Press F7 to skip");
     buttons.setPosition(window.getSize().x - buttons.getGlobalBounds().width - 10, 10);
     window.draw(buttons);
-    
     for(unsigned int i = 0; i < piano.whiteKeys.size(); i++){
         float posX = piano.whiteKeys[i].getPosition().x;
         if(clock.getElapsedTime().asSeconds() >= whitePlaying[i]){
@@ -149,9 +148,9 @@ int main(int argc, char const *argv[]){
                         piano.whiteKeys[key].setFillColor(sf::Color(84, 148, 218)); //LHS piano
                     else
                         piano.whiteKeys[key].setFillColor(sf::Color(124,252,0)); //RHS piano
-                    double timeToEnd = piano.notes[i]->getStartTime() + piano.notes[i]->getDurationInSeconds() - 2.f/100;
+                    double timeToEnd = piano.notes[i]->getStartTime() + piano.notes[i]->getDurationInSeconds() - 2.f/100; //to make repeated notes have small gap between them
                     if(piano.notes[i]->getDurationInSeconds() < 20.f/1000){
-                        timeToEnd = piano.notes[i]->getStartTime() + 20.f/1000;
+                        timeToEnd = piano.notes[i]->getStartTime() + 20.f/1000; //if note too short to see
                     }
                     whitePlaying[key] = timeToEnd;
                     window.draw(piano.whiteKeys[key]);
@@ -184,9 +183,12 @@ int main(int argc, char const *argv[]){
                     window.draw(piano.blackKeys[key]);
                 }
                 i++;
+
             }
             while(i < piano.notes.size() && piano.notes[i]->getStartTime() == piano.notes[i-1]->getStartTime());
             i--; //for loop will increment one too many without this and skip notes
+            
+            drawNotes(window, piano, clock, whitePlaying, blackPlaying, songPlaying); //need this to play the last notes or else will exit loop
         }
 
         while (music.getStatus() == sf::Music::Playing && !exit) {};
