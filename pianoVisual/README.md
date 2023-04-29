@@ -1,5 +1,5 @@
 # How to run
-Add Midi files to directory outputMidi and then run ./makeList.sh to make a new wave file if needed <br>
+Add Midi files to directory outputMidi and then run <code>./makeList.sh</code> to make a new wave file if needed <br>
 Run "make" command to update executable if needed and run the program
 
 # Installs
