@@ -6,7 +6,7 @@ MUSIC_LIB = -I./midifile/include -L./midifile/lib -lmidifile
 .PHONY: build
 build: piano.out run
 
-piano.out: src/piano.cpp src/main.cpp src/*.hpp
+piano.out: src/*.cpp src/*.hpp
 	@$(CXX) $(CXXFLAGS) -o piano.out $^ $(SFML_LIBS) $(MUSIC_LIB)
 
 .PHONY: run

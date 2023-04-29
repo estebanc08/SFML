@@ -117,7 +117,6 @@ void Piano::readMidi(const std::string path){
                     case 11: key = "Ab" + std::to_string((pitch / 12 + 1));
                     break;
                 }
-
                 Note* note = new Note(key, event.seconds, event.getDurationInSeconds());
                 notes.push_back(note);
             }
