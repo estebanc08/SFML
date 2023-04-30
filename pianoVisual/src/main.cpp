@@ -27,7 +27,6 @@ int main(int argc, char const *argv[]){
     sf::Text songPlaying("", font, 20);
     songPlaying.setPosition(sf::Vector2f(window.getSize().x / 2, 10));
 
-
     while(window.isOpen()){
         //Play the next song
         std::ofstream outFile("songList.txt", std::ofstream::out | std::ofstream::trunc);
@@ -63,7 +62,7 @@ int main(int argc, char const *argv[]){
         music.play();
 
 
-        sf::Clock clock;
+        sf::myClock clock;
         for (int i = 0; i < (int)piano.notes.size(); i++)
         {
             window.draw(songPlaying);
@@ -85,7 +84,28 @@ int main(int argc, char const *argv[]){
                     }
                     else if(event.key.code == sf::Keyboard::F6){
                         paused = !paused; 
-                        //clock.pause();
+                        if(paused){
+                            clock.stop();
+                            music.pause();
+                        }
+                        else{
+                            clock.start();
+                            music.play();
+                        }
+                        break;
+                    }
+                }
+                else if(event.type == sf::Event::MouseButtonPressed){
+                    if(event.mouseButton.button == sf::Mouse::Left){
+                        paused = !paused; 
+                        if(paused){
+                            clock.stop();
+                            music.pause();
+                        }
+                        else{
+                            clock.start();
+                            music.play();
+                        }
                         break;
                     }
                 }
@@ -95,7 +115,7 @@ int main(int argc, char const *argv[]){
             
             drawNotes(window, piano, clock, whitePlaying, blackPlaying, songPlaying);
 
-            if (clock.getElapsedTime().asSeconds() < piano.notes[i]->getStartTime()){
+            if (clock.getElapsedTime().asSeconds() < piano.notes[i]->getStartTime() || paused){
                 i--; //dont play note yet, go back to current note and check again
                 continue;
             }
@@ -158,13 +178,12 @@ int main(int argc, char const *argv[]){
 }
 
 
-inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::Clock& clock, std::vector<double>& whitePlaying, std::vector<double>& blackPlaying, sf::Text& songPlaying){
+inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::myClock& clock, std::vector<double>& whitePlaying, std::vector<double>& blackPlaying, sf::Text& songPlaying){
     window.clear();
     
     double currTime = clock.getElapsedTime().asSeconds();
     double timeToShow = currTime + SCREEN_TIME;
     float screenPercent = (window.getSize().y - piano.whiteKeys[0].getGlobalBounds().height) / SCREEN_TIME;
-
     for(unsigned int index = start; index < piano.notes.size(); index++){
         if(piano.notes[index]->getStartTime() < currTime - SCREEN_TIME){
             start++; //note offically out of scope
