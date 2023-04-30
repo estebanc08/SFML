@@ -41,6 +41,7 @@ int main(int argc, char const *argv[]){
             outFile.flush();
             outFile.close();
         }
+        paused = false;
 
         std::string midiName = "outputMidi/" + musicList[currSong] + ".mid";
         std::string wavName = "outputWav/" + musicList[currSong] + ".wav";
@@ -59,10 +60,10 @@ int main(int argc, char const *argv[]){
         if (!music.openFromFile(wavName)) {
             return 1;
         }
-        music.play();
 
 
         sf::myClock clock;
+        music.play();
         for (int i = 0; i < (int)piano.notes.size(); i++)
         {
             window.draw(songPlaying);
@@ -99,8 +100,9 @@ int main(int argc, char const *argv[]){
                     if(event.mouseButton.button == sf::Mouse::Left){
                         paused = !paused; 
                         if(paused){
-                            clock.stop();
+                            // std::cout << "Music: " << music.getPlayingOffset().asSeconds() << " Clock: " << clock.getElapsedTime().asSeconds() << "\n";
                             music.pause();
+                            clock.stop();
                         }
                         else{
                             clock.start();
@@ -119,41 +121,35 @@ int main(int argc, char const *argv[]){
                 i--; //dont play note yet, go back to current note and check again
                 continue;
             }
-            do{
-                int key = 0;
-                if(piano.notes[i]->getKey()[1] != 'b'){
-                    key = whiteKeyIndex(piano.notes[i]->getKey());
-                    if(key < piano.whiteKeys.size()/2)
-                        piano.whiteKeys[key].setFillColor(sf::Color(84, 148, 218)); //LHS piano
-                    else
-                        piano.whiteKeys[key].setFillColor(sf::Color(124,252,0)); //RHS piano
-                    double timeToEnd = piano.notes[i]->getStartTime() + piano.notes[i]->getDurationInSeconds() - 2.f/100; //to make repeated notes have small gap between them
-                    if(piano.notes[i]->getDurationInSeconds() < 20.f/1000){
-                        timeToEnd = piano.notes[i]->getStartTime() + 20.f/1000; //if note too short to see
-                    }
-                    whitePlaying[key] = timeToEnd;
-                    window.draw(piano.whiteKeys[key]);
+            int key = 0;
+            if(piano.notes[i]->getDurationInSeconds() == 0)
+                continue;
+            if(piano.notes[i]->getKey()[1] != 'b'){
+                key = whiteKeyIndex(piano.notes[i]->getKey());
+                if(key < piano.whiteKeys.size()/2)
+                    piano.whiteKeys[key].setFillColor(sf::Color(84, 148, 218)); //LHS piano
+                else
+                    piano.whiteKeys[key].setFillColor(sf::Color(124,252,0)); //RHS piano
+                double timeToEnd = piano.notes[i]->getStartTime() + piano.notes[i]->getDurationInSeconds();
+                if(piano.notes[i]->getDurationInSeconds() < 20.f/1000){
+                    timeToEnd = piano.notes[i]->getStartTime() + 20.f/1000; //if note too short to see
                 }
-                else{
-                    key = blackKeyIndex(piano.notes[i]->getKey());
-                    if(key < piano.blackKeys.size() / 2)
-                        piano.blackKeys[key].setFillColor(sf::Color(59, 107, 153));
-                    else
-                        piano.blackKeys[key].setFillColor(sf::Color(89,176,0));
-                    double timeToEnd = piano.notes[i]->getStartTime() + piano.notes[i]->getDurationInSeconds() - 2.f/100;
-                    if(piano.notes[i]->getDurationInSeconds() < 20.f/1000){
-                        timeToEnd = piano.notes[i]->getStartTime() + 20.f/1000;
-                    }
-                    blackPlaying[key] = timeToEnd;
-                    window.draw(piano.blackKeys[key]);
-                }
-                i++;
-
+                whitePlaying[key] = timeToEnd;
+                window.draw(piano.whiteKeys[key]);
             }
-            while(i < piano.notes.size() && piano.notes[i]->getStartTime() == piano.notes[i-1]->getStartTime());
-            i--; //for loop will increment one too many without this and skip notes
-            
-            drawNotes(window, piano, clock, whitePlaying, blackPlaying, songPlaying); //need this to play the last notes or else will exit loop
+            else{
+                key = blackKeyIndex(piano.notes[i]->getKey());
+                if(key < piano.blackKeys.size() / 2)
+                    piano.blackKeys[key].setFillColor(sf::Color(59, 107, 153));
+                else
+                    piano.blackKeys[key].setFillColor(sf::Color(89,176,0));
+                double timeToEnd = piano.notes[i]->getStartTime() + piano.notes[i]->getDurationInSeconds();
+                if(piano.notes[i]->getDurationInSeconds() < 20.f/1000){
+                    timeToEnd = piano.notes[i]->getStartTime() + 20.f/1000;
+                }
+                blackPlaying[key] = timeToEnd;
+                window.draw(piano.blackKeys[key]);
+            }
         }
 
         while (music.getStatus() == sf::Music::Playing && !exit) {
@@ -189,7 +185,9 @@ inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::myClock& clock
             start++; //note offically out of scope
             continue;
         }
-        if(piano.notes[index]->getStartTime() < timeToShow){
+        else if(piano.notes[index]->getDurationInSeconds() == 0)
+            continue;
+        else if(piano.notes[index]->getStartTime() < timeToShow){
             int key = 0;
             bool whiteKey = true;
             sf::RoundedRectangleShape note;
@@ -246,6 +244,7 @@ inline void drawNotes(sf::RenderWindow& window, Piano& piano, sf::myClock& clock
     buttons.setString("Press F7 to skip");
     buttons.setPosition(window.getSize().x - buttons.getGlobalBounds().width - 10, 10);
     window.draw(buttons);
+
     for(unsigned int i = 0; i < piano.whiteKeys.size(); i++){
         float posX = piano.whiteKeys[i].getPosition().x;
         if(clock.getElapsedTime().asSeconds() >= whitePlaying[i]){
