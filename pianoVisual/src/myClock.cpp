@@ -85,4 +85,10 @@ Time myClock::reset()
     return current;
 }
 
+
+void myClock::offsetTime(int64_t offsetTime)
+{
+    m_refPoint -= std::chrono::milliseconds(offsetTime);
+}
+
 } // namespace sf
