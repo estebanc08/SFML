@@ -12,5 +12,5 @@ control-z and then use the bg command to allow it to run in the background.<br>
 Run `make` command to update executable if needed and run the program. 
 
 # Demo
-Rach 3 Demo
+Rach 3 Demo <br>
 [![Rach 3 Demo](https://img.youtube.com/vi/dlsCJ1E4_k8/0.jpg)](https://youtu.be/dlsCJ1E4_k8)
