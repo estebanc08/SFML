@@ -1,0 +1,3 @@
+[submodule "pianoVisual/midifile"]
+    path = pianoVisual/midifile
+    url = https://github.com/example/midifile.git
